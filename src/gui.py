@@ -1,11 +1,13 @@
 import os
+import re
 import time
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QHBoxLayout, QFileDialog, QLineEdit, QColorDialog, QApplication
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QHBoxLayout, QFileDialog, QLineEdit, QColorDialog, QApplication, QFontDialog
 from PyQt5.QtGui import QPixmap, QIcon, QColor
 from PyQt5.QtCore import Qt
 
 from PIL import ImageGrab, ImageDraw, ImageFont, ImageFilter
 from .selection_window import SelectionWindow
+from .text_format import TextFormat
 
 class ScreenshotTool(QMainWindow):
     def __init__(self):
@@ -18,6 +20,7 @@ class ScreenshotTool(QMainWindow):
         self.text_mode = False
         self.text_position = None
         self.text_edit = None
+        self.text_format = TextFormat()
 
         self.initUI()
         self.start_selection()
@@ -44,6 +47,10 @@ class ScreenshotTool(QMainWindow):
         self.text_button = QPushButton("📝")
         self.text_button.clicked.connect(self.enable_text_mode)
         self.toolbar.addWidget(self.text_button)
+
+        self.font_button = QPushButton("🅰️")
+        self.font_button.clicked.connect(self.select_font)
+        self.toolbar.addWidget(self.font_button)
 
         self.color_button = QPushButton()
         self.update_color_button()
@@ -79,6 +86,7 @@ class ScreenshotTool(QMainWindow):
 
     def process_screenshot(self, screenshot):
         self.screenshot = screenshot
+        self.original_screenshot = screenshot.copy()
 
         max_width = 1024
         max_height = 576
@@ -124,17 +132,52 @@ class ScreenshotTool(QMainWindow):
         self.history.clear()
         self.update_screenshot()
         self.show()
+
+    def hex_to_rgb(self, hex_color):
+        hex_color = hex_color.lstrip('#')
+        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
     
     def update_screenshot(self):
         if self.screenshot:
+            self.screenshot = self.original_screenshot.copy()
             edited_screenshot = self.screenshot.copy()
             draw = ImageDraw.Draw(edited_screenshot)
-            try:
-                font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 18)
-            except IOError:
-                font = ImageFont.load_default()
-            for text, pos, color in self.texts:
-                draw.text(pos, text, font=font, fill=color.name())
+
+            for text_data in self.texts:
+                if len(text_data) == 3:
+                    text, pos, color = text_data
+                    font = self.text_format.get_font() 
+                else:
+                    text, pos, font, color = text_data
+
+                if isinstance(color, QColor):  
+                    color = color.name() 
+
+                if isinstance(color, str) and re.match(r"^#[0-9A-Fa-f]{6}$", color):
+                    color = self.hex_to_rgb(color)
+
+                font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" 
+                bold_font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+                italic_font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Oblique.ttf"
+
+                try:
+                    if font.bold() and font.italic():
+                        pil_font = ImageFont.truetype(bold_font_path, font.pointSize())
+                    elif font.bold():
+                        pil_font = ImageFont.truetype(bold_font_path, font.pointSize())
+                    elif font.italic():
+                        pil_font = ImageFont.truetype(italic_font_path, font.pointSize())
+                    else:
+                        pil_font = ImageFont.truetype(font_path, font.pointSize())
+                except IOError:
+                    pil_font = ImageFont.load_default() 
+
+                draw.text(pos, text, font=pil_font, fill=color)
+
+                if font.underline():
+                    underline_y = pos[1] + font.pointSize() + 2
+                    draw.line((pos[0], underline_y, pos[0] + len(text) * font.pointSize() // 2, underline_y), fill=color, width=2)
+
             edited_screenshot.save("temp_screenshot.png")
             pixmap = QPixmap("temp_screenshot.png")
             self.label.setPixmap(pixmap)
@@ -144,10 +187,26 @@ class ScreenshotTool(QMainWindow):
         if self.screenshot is None:
             return  
         self.text_mode = True
+
+    def select_font(self):
+        self.setAttribute(Qt.WA_TranslucentBackground, False)
+        self.setStyleSheet("")
+
+        font, ok = QFontDialog.getFont(self.text_format.get_font(), self)
+        if ok:
+            self.text_format.set_font_family(font.family())
+            self.text_format.set_font_size(font.pointSize())
+            self.text_format.set_bold(font.bold())  
+            self.text_format.set_italic(font.italic())  
+            self.text_format.set_underline(font.underline()) 
+
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setStyleSheet("background: transparent;")
     
     def select_color(self):
         color = QColorDialog.getColor()
         if color.isValid():
+            self.text_format.set_color(color.name()) 
             self.selected_color = color
             self.update_color_button()
     
@@ -174,16 +233,26 @@ class ScreenshotTool(QMainWindow):
     
     def add_text_to_screenshot(self):
       if self.screenshot and self.text_edit:
-          self.text_input = self.text_edit.text()
+            self.text_input = self.text_edit.text()
+            self.history.append((self.original_screenshot.copy(), list(self.texts)))
 
-          self.history.append((self.screenshot.copy(), list(self.texts)))
+            font = self.text_format.get_font()
+            color = self.text_format.color
 
-          self.texts.append((self.text_input, self.text_position, self.selected_color))
+            updated_texts = []
+            for text_data in self.texts:
+                if len(text_data) == 3: 
+                    text, pos, color = text_data
+                    updated_texts.append((text, pos, font, color))
+                else:
+                    updated_texts.append(text_data)
 
-          self.update_screenshot()
+            self.texts = updated_texts
+            self.texts.append((self.text_input, self.text_position, font, color))
+            self.update_screenshot()
 
-          self.text_edit.deleteLater()
-          self.text_edit = None
+            self.text_edit.deleteLater()
+            self.text_edit = None
     
     def undo_last_action(self):
         if self.history:  
