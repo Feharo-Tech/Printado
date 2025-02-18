@@ -22,6 +22,11 @@ class ScreenshotTool(QMainWindow):
         self.text_edit = None
         self.text_format = TextFormat()
 
+        self.original_width = 0
+        self.original_height = 0
+        self.new_width = 0
+        self.new_height = 0
+
         self.initUI()
         self.start_selection()
     
@@ -88,39 +93,43 @@ class ScreenshotTool(QMainWindow):
         self.screenshot = screenshot
         self.original_screenshot = screenshot.copy()
 
+        self.original_width, self.original_height = self.screenshot.size
+
         max_width = 1024
         max_height = 576
 
-        original_width, original_height = self.screenshot.size
-
-        aspect_ratio = original_width / original_height
-        if original_width > max_width or original_height > max_height:
+        aspect_ratio = self.original_width / self.original_height
+        if self.original_width > max_width or self.original_height > max_height:
             if aspect_ratio > (max_width / max_height):
-                new_width = max_width
-                new_height = int(max_width / aspect_ratio)
+                self.new_width = max_width
+                self.new_height = int(max_width / aspect_ratio)
             else:
-                new_height = max_height
-                new_width = int(max_height * aspect_ratio)
+                self.new_height = max_height
+                self.new_width = int(max_height * aspect_ratio)
             
-            self.screenshot = self.screenshot.resize((new_width, new_height))
+            self.screenshot = self.screenshot.resize((self.new_width, self.new_height))
+            self.original_screenshot = self.original_screenshot.resize((self.new_width, self.new_height))
+
         else:
-            new_width, new_height = original_width, original_height
+            self.new_width = self.original_width
+            self.new_height = self.original_height
 
         self.screenshot.save("temp_screenshot.png")
 
         pixmap = QPixmap("temp_screenshot.png")
         self.label.setPixmap(pixmap)
 
-        self.setFixedSize(new_width, new_height)
+        self.setFixedSize(self.new_width, self.new_height)
 
         screen_geometry = QApplication.primaryScreen().geometry()
-        center_x = (screen_geometry.width() - new_width) // 2
-        center_y = (screen_geometry.height() - new_height) // 2
+        center_x = (screen_geometry.width() - self.new_width) // 2
+        center_y = (screen_geometry.height() - self.new_height) // 2
         self.move(center_x, center_y)
 
         self.show()
         self.raise_()
         self.activateWindow()
+
 
    
     def capture_area(self, rect):
@@ -217,7 +226,20 @@ class ScreenshotTool(QMainWindow):
     
     def mousePressEvent(self, event):
         if self.text_mode and self.screenshot is not None:
-            self.text_position = (event.x(), event.y())
+            if self.new_width == 0 or self.new_height == 0:
+                return
+
+            label_x = self.label.pos().x()
+            label_y = self.label.pos().y()
+
+            adjusted_x = event.x() - label_x
+            adjusted_y = event.y() - label_y
+
+            adjusted_x = max(0, min(adjusted_x, self.new_width))
+            adjusted_y = max(0, min(adjusted_y, self.new_height))
+
+            self.text_position = (adjusted_x, adjusted_y)
+
             self.show_text_input()
             self.text_mode = False
     
@@ -225,11 +247,20 @@ class ScreenshotTool(QMainWindow):
         if self.text_edit is not None:
             self.text_edit.deleteLater()
         self.text_edit = QLineEdit(self)
-        self.text_edit.setGeometry(self.text_position[0], self.text_position[1], 200, 30)
+
+        x, y = self.text_position
+
+        self.text_edit.setGeometry(x, y, 200, 30)
         self.text_edit.setPlaceholderText("Digite seu texto aqui...")
+
         self.text_edit.returnPressed.connect(self.add_text_to_screenshot)
         self.text_edit.show()
+        self.text_edit.raise_()
         self.text_edit.setFocus()
+
+        self.update()
+
+
     
     def add_text_to_screenshot(self):
       if self.screenshot and self.text_edit:
