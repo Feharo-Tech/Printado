@@ -45,10 +45,6 @@ class ScreenshotTool(QMainWindow):
         self.toolbar = QVBoxLayout(self.toolbar_widget)
         self.toolbar.setAlignment(Qt.AlignBottom | Qt.AlignRight)
 
-        self.capture_button = QPushButton("📸")
-        self.capture_button.clicked.connect(self.start_selection)
-        self.toolbar.addWidget(self.capture_button)
-
         self.text_button = QPushButton("📝")
         self.text_button.clicked.connect(self.enable_text_mode)
         self.toolbar.addWidget(self.text_button)
