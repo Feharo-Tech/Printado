@@ -23,12 +23,6 @@ class ScreenshotTool(QMainWindow):
         self.text_position = None
         self.text_edit = None
         self.text_format = TextFormat()
-
-        self.original_width = 0
-        self.original_height = 0
-        self.new_width = 0
-        self.new_height = 0
-
         self.initUI()
         self.start_selection()
     
@@ -80,15 +74,12 @@ class ScreenshotTool(QMainWindow):
         container.setStyleSheet("background: transparent;")
         container.setLayout(main_layout)
         self.setCentralWidget(container)
-
-
     
     def start_selection(self):
         self.selector = SelectionWindow(self)
         self.selector.showFullScreen()
         QApplication.setOverrideCursor(QCursor(Qt.CrossCursor))
         
-
     def process_screenshot(self, screenshot):
         QApplication.restoreOverrideCursor()
         self.screenshot = screenshot
@@ -130,7 +121,6 @@ class ScreenshotTool(QMainWindow):
         self.show()
         self.raise_()
         self.activateWindow()
-
 
     def hex_to_rgb(self, hex_color):
         hex_color = hex_color.lstrip('#')
