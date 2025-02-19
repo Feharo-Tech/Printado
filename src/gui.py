@@ -231,8 +231,6 @@ class ScreenshotTool(QMainWindow):
         self.text_edit.setFocus()
 
         self.update()
-
-
     
     def add_text_to_screenshot(self):
         if self.screenshot and self.text_edit:
