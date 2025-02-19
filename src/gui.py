@@ -41,33 +41,25 @@ class ScreenshotTool(QMainWindow):
         self.toolbar = QVBoxLayout(self.toolbar_widget)
         self.toolbar.setAlignment(Qt.AlignBottom | Qt.AlignRight)
 
-        self.text_button = QPushButton(qta.icon("fa.i-cursor"), "")
-        self.text_button.clicked.connect(self.enable_text_mode)
-        self.toolbar.addWidget(self.text_button)
+        buttons = [
+            ("fa.i-cursor", self.enable_text_mode),
+            ("fa.font", self.select_font),
+            (None, self.select_color),
+            ("fa.undo", self.undo_last_action),
+            ("fa.save", self.save_screenshot),
+            ("fa.trash", QApplication.quit)
+        ]
 
-        self.font_button = QPushButton(qta.icon("fa.font"), "")
-        self.font_button.clicked.connect(self.select_font)
-        self.toolbar.addWidget(self.font_button)
-
-        self.color_button = QPushButton()
-        self.update_color_button()
-        self.color_button.clicked.connect(self.select_color)
-        self.toolbar.addWidget(self.color_button)
-
-        self.undo_button = QPushButton(qta.icon("fa.undo"), "")
-        self.undo_button.clicked.connect(self.undo_last_action)
-        self.toolbar.addWidget(self.undo_button)
-
-        self.save_button = QPushButton(qta.icon("fa.save"), "")
-        self.save_button.clicked.connect(self.save_screenshot)
-        self.toolbar.addWidget(self.save_button)
-
-        self.close_button = QPushButton(qta.icon("fa.trash"), "")
-        self.close_button.clicked.connect(QApplication.quit)
-        self.toolbar.addWidget(self.close_button)
+        for icon, action in buttons:
+            btn = QPushButton(qta.icon(icon), "") if icon else QPushButton()
+            btn.clicked.connect(action)
+            self.toolbar.addWidget(btn)
+            if not icon:
+                self.color_button = btn
+                self.update_color_button()
 
         main_layout = QHBoxLayout()
-        main_layout.addLayout(layout) 
+        main_layout.addLayout(layout)
         main_layout.addWidget(self.toolbar_widget)
 
         container = QWidget()
