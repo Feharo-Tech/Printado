@@ -253,25 +253,11 @@ class ScreenshotTool(QMainWindow):
 
     
     def add_text_to_screenshot(self):
-      if self.screenshot and self.text_edit:
-            self.text_input = self.text_edit.text()
+        if self.screenshot and self.text_edit:
+            text_input = self.text_edit.text()
             self.history.append((self.original_screenshot.copy(), list(self.texts)))
-
-            font = self.text_format.get_font()
-            color = self.text_format.color
-
-            updated_texts = []
-            for text_data in self.texts:
-                if len(text_data) == 3: 
-                    text, pos, color = text_data
-                    updated_texts.append((text, pos, font, color))
-                else:
-                    updated_texts.append(text_data)
-
-            self.texts = updated_texts
-            self.texts.append((self.text_input, self.text_position, font, color))
+            self.texts.append((text_input, self.text_position, self.text_format.get_font(), self.text_format.color))
             self.update_screenshot()
-
             self.text_edit.deleteLater()
             self.text_edit = None
     
