@@ -278,21 +278,11 @@ class ScreenshotTool(QMainWindow):
     def undo_last_action(self):
         if self.history:  
             self.screenshot, self.texts = self.history.pop()
-
             self.update_screenshot()
     
     def save_screenshot(self):
         if self.screenshot:
-            self.update_screenshot()  
-
-            filename, _ = QFileDialog.getSaveFileName(
-                None, 
-                "Salvar Imagem",
-                "screenshot.png",
-                "PNG Files (*.png);;JPEG Files (*.jpg)",
-                options=QFileDialog.Options()
-            )
-
+            filename, _ = QFileDialog.getSaveFileName(None, "Salvar Imagem", "screenshot.png", "PNG Files (*.png);;JPEG Files (*.jpg)")
             if filename:
                 self.screenshot.save(filename)
-                QApplication.quit() 
+                QApplication.quit()
