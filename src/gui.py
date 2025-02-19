@@ -1,6 +1,8 @@
 import os
 import re
 import time
+import qtawesome as qta
+
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QHBoxLayout, QFileDialog, QLineEdit, QColorDialog, QApplication, QFontDialog
 from PyQt5.QtGui import QPixmap, QIcon, QColor
 from PyQt5.QtCore import Qt
@@ -45,11 +47,11 @@ class ScreenshotTool(QMainWindow):
         self.toolbar = QVBoxLayout(self.toolbar_widget)
         self.toolbar.setAlignment(Qt.AlignBottom | Qt.AlignRight)
 
-        self.text_button = QPushButton("📝")
+        self.text_button = QPushButton(qta.icon("fa.i-cursor"), "")
         self.text_button.clicked.connect(self.enable_text_mode)
         self.toolbar.addWidget(self.text_button)
 
-        self.font_button = QPushButton("🅰️")
+        self.font_button = QPushButton(qta.icon("fa.font"), "")
         self.font_button.clicked.connect(self.select_font)
         self.toolbar.addWidget(self.font_button)
 
@@ -58,15 +60,15 @@ class ScreenshotTool(QMainWindow):
         self.color_button.clicked.connect(self.select_color)
         self.toolbar.addWidget(self.color_button)
 
-        self.undo_button = QPushButton("↩")
+        self.undo_button = QPushButton(qta.icon("fa.undo"), "")
         self.undo_button.clicked.connect(self.undo_last_action)
         self.toolbar.addWidget(self.undo_button)
 
-        self.save_button = QPushButton("💾")
+        self.save_button = QPushButton(qta.icon("fa.save"), "")
         self.save_button.clicked.connect(self.save_screenshot)
         self.toolbar.addWidget(self.save_button)
 
-        self.close_button = QPushButton("🗑")
+        self.close_button = QPushButton(qta.icon("fa.trash"), "")
         self.close_button.clicked.connect(QApplication.quit)
         self.toolbar.addWidget(self.close_button)
 
