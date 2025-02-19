@@ -2,9 +2,9 @@ from pynput import keyboard
 import subprocess
 import sys
 import os
-import signal
 
-main_process = None 
+main_process = None
+pressed_keys = set() 
 
 def run_screenshot_tool():
     global main_process
@@ -16,23 +16,28 @@ def run_screenshot_tool():
 def stop_screenshot_tool():
     global main_process
     if main_process is not None:
-        main_process.terminate() 
-        try:
-            main_process.wait(timeout=2)  
-        except subprocess.TimeoutExpired:
-            main_process.kill()
+        main_process.terminate()
         main_process = None
 
 def on_press(key):
+    global pressed_keys
     try:
-        if key == keyboard.Key.print_screen:
-            run_screenshot_tool()
+        pressed_keys.add(key) 
 
-        if key == keyboard.Key.esc: 
+        if keyboard.Key.ctrl_l in pressed_keys or keyboard.Key.ctrl_r in pressed_keys:
+            if key == keyboard.Key.print_screen:
+                run_screenshot_tool()
+
+        if key == keyboard.Key.esc:
             stop_screenshot_tool()
 
     except AttributeError:
         pass
 
-with keyboard.Listener(on_press=on_press) as listener:
+def on_release(key):
+    global pressed_keys
+    if key in pressed_keys:
+        pressed_keys.remove(key)
+
+with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
     listener.join()

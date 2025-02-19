@@ -4,7 +4,7 @@ import time
 import qtawesome as qta
 
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QHBoxLayout, QFileDialog, QLineEdit, QColorDialog, QApplication, QFontDialog
-from PyQt5.QtGui import QPixmap, QIcon, QColor
+from PyQt5.QtGui import QPixmap, QIcon, QColor, QCursor
 from PyQt5.QtCore import Qt
 
 from PIL import ImageGrab, ImageDraw, ImageFont, ImageFilter
@@ -86,8 +86,11 @@ class ScreenshotTool(QMainWindow):
     def start_selection(self):
         self.selector = SelectionWindow(self)
         self.selector.showFullScreen()
+        QApplication.setOverrideCursor(QCursor(Qt.CrossCursor))
+        
 
     def process_screenshot(self, screenshot):
+        QApplication.restoreOverrideCursor()
         self.screenshot = screenshot
         self.original_screenshot = screenshot.copy()
 
@@ -128,17 +131,6 @@ class ScreenshotTool(QMainWindow):
         self.raise_()
         self.activateWindow()
 
-
-   
-    def capture_area(self, rect):
-        self.hide()
-        time.sleep(0.2)
-        full_screenshot = ImageGrab.grab(all_screens=True)
-        self.screenshot = full_screenshot.crop((rect.left(), rect.top(), rect.right(), rect.bottom()))
-        self.texts = [] 
-        self.history.clear()
-        self.update_screenshot()
-        self.show()
 
     def hex_to_rgb(self, hex_color):
         hex_color = hex_color.lstrip('#')
