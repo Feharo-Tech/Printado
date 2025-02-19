@@ -23,12 +23,6 @@ class ScreenshotTool(QMainWindow):
         self.text_position = None
         self.text_edit = None
         self.text_format = TextFormat()
-
-        self.original_width = 0
-        self.original_height = 0
-        self.new_width = 0
-        self.new_height = 0
-
         self.initUI()
         self.start_selection()
     
@@ -47,48 +41,37 @@ class ScreenshotTool(QMainWindow):
         self.toolbar = QVBoxLayout(self.toolbar_widget)
         self.toolbar.setAlignment(Qt.AlignBottom | Qt.AlignRight)
 
-        self.text_button = QPushButton(qta.icon("fa.i-cursor"), "")
-        self.text_button.clicked.connect(self.enable_text_mode)
-        self.toolbar.addWidget(self.text_button)
+        buttons = [
+            ("fa.i-cursor", self.enable_text_mode),
+            ("fa.font", self.select_font),
+            (None, self.select_color),
+            ("fa.undo", self.undo_last_action),
+            ("fa.save", self.save_screenshot),
+            ("fa.trash", QApplication.quit)
+        ]
 
-        self.font_button = QPushButton(qta.icon("fa.font"), "")
-        self.font_button.clicked.connect(self.select_font)
-        self.toolbar.addWidget(self.font_button)
-
-        self.color_button = QPushButton()
-        self.update_color_button()
-        self.color_button.clicked.connect(self.select_color)
-        self.toolbar.addWidget(self.color_button)
-
-        self.undo_button = QPushButton(qta.icon("fa.undo"), "")
-        self.undo_button.clicked.connect(self.undo_last_action)
-        self.toolbar.addWidget(self.undo_button)
-
-        self.save_button = QPushButton(qta.icon("fa.save"), "")
-        self.save_button.clicked.connect(self.save_screenshot)
-        self.toolbar.addWidget(self.save_button)
-
-        self.close_button = QPushButton(qta.icon("fa.trash"), "")
-        self.close_button.clicked.connect(QApplication.quit)
-        self.toolbar.addWidget(self.close_button)
+        for icon, action in buttons:
+            btn = QPushButton(qta.icon(icon), "") if icon else QPushButton()
+            btn.clicked.connect(action)
+            self.toolbar.addWidget(btn)
+            if not icon:
+                self.color_button = btn
+                self.update_color_button()
 
         main_layout = QHBoxLayout()
-        main_layout.addLayout(layout) 
+        main_layout.addLayout(layout)
         main_layout.addWidget(self.toolbar_widget)
 
         container = QWidget()
         container.setStyleSheet("background: transparent;")
         container.setLayout(main_layout)
         self.setCentralWidget(container)
-
-
     
     def start_selection(self):
         self.selector = SelectionWindow(self)
         self.selector.showFullScreen()
         QApplication.setOverrideCursor(QCursor(Qt.CrossCursor))
         
-
     def process_screenshot(self, screenshot):
         QApplication.restoreOverrideCursor()
         self.screenshot = screenshot
@@ -130,7 +113,6 @@ class ScreenshotTool(QMainWindow):
         self.show()
         self.raise_()
         self.activateWindow()
-
 
     def hex_to_rgb(self, hex_color):
         hex_color = hex_color.lstrip('#')
@@ -249,50 +231,24 @@ class ScreenshotTool(QMainWindow):
         self.text_edit.setFocus()
 
         self.update()
-
-
     
     def add_text_to_screenshot(self):
-      if self.screenshot and self.text_edit:
-            self.text_input = self.text_edit.text()
+        if self.screenshot and self.text_edit:
+            text_input = self.text_edit.text()
             self.history.append((self.original_screenshot.copy(), list(self.texts)))
-
-            font = self.text_format.get_font()
-            color = self.text_format.color
-
-            updated_texts = []
-            for text_data in self.texts:
-                if len(text_data) == 3: 
-                    text, pos, color = text_data
-                    updated_texts.append((text, pos, font, color))
-                else:
-                    updated_texts.append(text_data)
-
-            self.texts = updated_texts
-            self.texts.append((self.text_input, self.text_position, font, color))
+            self.texts.append((text_input, self.text_position, self.text_format.get_font(), self.text_format.color))
             self.update_screenshot()
-
             self.text_edit.deleteLater()
             self.text_edit = None
     
     def undo_last_action(self):
         if self.history:  
             self.screenshot, self.texts = self.history.pop()
-
             self.update_screenshot()
     
     def save_screenshot(self):
         if self.screenshot:
-            self.update_screenshot()  
-
-            filename, _ = QFileDialog.getSaveFileName(
-                None, 
-                "Salvar Imagem",
-                "screenshot.png",
-                "PNG Files (*.png);;JPEG Files (*.jpg)",
-                options=QFileDialog.Options()
-            )
-
+            filename, _ = QFileDialog.getSaveFileName(None, "Salvar Imagem", "screenshot.png", "PNG Files (*.png);;JPEG Files (*.jpg)")
             if filename:
                 self.screenshot.save(filename)
-                QApplication.quit() 
+                QApplication.quit()
