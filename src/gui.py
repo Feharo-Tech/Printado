@@ -111,7 +111,7 @@ class ScreenshotTool(QMainWindow):
         pixmap = QPixmap("temp_screenshot.png")
         self.label.setPixmap(pixmap)
 
-        self.setFixedSize(self.new_width, self.new_height)
+        self.setFixedSize(self.new_width + 30 * 2, self.new_height + 10 * 2)
 
         screen_geometry = QApplication.primaryScreen().geometry()
         center_x = (screen_geometry.width() - self.new_width) // 2
