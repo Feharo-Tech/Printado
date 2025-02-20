@@ -1,7 +1,9 @@
 from pynput import keyboard
+from src.utils import delete_temp_screenshot
 import subprocess
 import sys
 import os
+
 
 main_process = None
 pressed_keys = set() 
@@ -16,6 +18,7 @@ def run_screenshot_tool():
 def stop_screenshot_tool():
     global main_process
     if main_process is not None:
+        delete_temp_screenshot()
         main_process.terminate()
         main_process = None
 

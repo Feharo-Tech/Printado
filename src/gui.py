@@ -11,6 +11,7 @@ from PIL import ImageGrab, ImageDraw, ImageFont, ImageFilter
 from .selection_window import SelectionWindow
 from .text_format import TextFormat
 from .blur_background import BlurBackground
+from .utils import delete_temp_screenshot
 
 class ScreenshotTool(QMainWindow):
     def __init__(self):
@@ -279,4 +280,5 @@ class ScreenshotTool(QMainWindow):
             filename, _ = QFileDialog.getSaveFileName(None, "Salvar Imagem", "screenshot.png", "PNG Files (*.png);;JPEG Files (*.jpg)")
             if filename:
                 self.original_screenshot.save(filename)
+                delete_temp_screenshot()
                 QApplication.quit()
