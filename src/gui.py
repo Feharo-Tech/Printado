@@ -100,11 +100,12 @@ class ScreenshotTool(QMainWindow):
                 self.new_width = int(max_height * aspect_ratio)
             
             self.screenshot = self.screenshot.resize((self.new_width, self.new_height))
-            self.original_screenshot = self.original_screenshot.resize((self.new_width, self.new_height))
+            self.display_screenshot = self.screenshot.resize((self.new_width, self.new_height))
 
         else:
             self.new_width = self.original_width
             self.new_height = self.original_height
+            self.display_screenshot = self.screenshot
 
         self.screenshot.save("temp_screenshot.png")
 
@@ -132,7 +133,12 @@ class ScreenshotTool(QMainWindow):
             edited_screenshot = self.screenshot.copy()
             draw = ImageDraw.Draw(edited_screenshot)
 
+            scale_x = self.original_width / self.new_width
+            scale_y = self.original_height / self.new_height
+
             for text_data in self.texts:
+                text, pos, font, color = text_data
+
                 if len(text_data) == 3:
                     text, pos, color = text_data
                     font = self.text_format.get_font() 
@@ -145,19 +151,21 @@ class ScreenshotTool(QMainWindow):
                 if isinstance(color, str) and re.match(r"^#[0-9A-Fa-f]{6}$", color):
                     color = self.hex_to_rgb(color)
 
+                adjusted_pos = (int(pos[0] * scale_x), int(pos[1] * scale_y))
+
                 font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" 
                 bold_font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
                 italic_font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Oblique.ttf"
 
                 try:
                     if font.bold() and font.italic():
-                        pil_font = ImageFont.truetype(bold_font_path, font.pointSize())
+                        pil_font = ImageFont.truetype(bold_font_path, font.pointSize()* scale_x)
                     elif font.bold():
-                        pil_font = ImageFont.truetype(bold_font_path, font.pointSize())
+                        pil_font = ImageFont.truetype(bold_font_path, font.pointSize()* scale_x)
                     elif font.italic():
-                        pil_font = ImageFont.truetype(italic_font_path, font.pointSize())
+                        pil_font = ImageFont.truetype(italic_font_path, font.pointSize()* scale_x)
                     else:
-                        pil_font = ImageFont.truetype(font_path, font.pointSize())
+                        pil_font = ImageFont.truetype(font_path, font.pointSize()* scale_x)
                 except IOError:
                     pil_font = ImageFont.load_default() 
 
@@ -168,9 +176,14 @@ class ScreenshotTool(QMainWindow):
                     draw.line((pos[0], underline_y, pos[0] + len(text) * font.pointSize() // 2, underline_y), fill=color, width=2)
 
             edited_screenshot.save("temp_screenshot.png")
-            pixmap = QPixmap("temp_screenshot.png")
-            self.label.setPixmap(pixmap)
+            self.original_screenshot = edited_screenshot.copy()
             self.screenshot = edited_screenshot
+
+            pixmap = QPixmap("temp_screenshot.png")
+            scaled_pixmap = pixmap.scaled(self.new_width, self.new_height, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+
+            self.label.setPixmap(scaled_pixmap)
+            self.label.adjustSize()
     
     def enable_text_mode(self):
         if self.screenshot is None:
@@ -243,8 +256,15 @@ class ScreenshotTool(QMainWindow):
     def add_text_to_screenshot(self):
         if self.screenshot and self.text_edit:
             text_input = self.text_edit.text()
+
+            scale_x = self.original_width / self.new_width
+            scale_y = self.original_height / self.new_height
+
+            adjusted_x = int(self.text_position[0] * scale_x)
+            adjusted_y = int(self.text_position[1] * scale_y)
+
             self.history.append((self.original_screenshot.copy(), list(self.texts)))
-            self.texts.append((text_input, self.text_position, self.text_format.get_font(), self.text_format.color))
+            self.texts.append((text_input, (adjusted_x, adjusted_y), self.text_format.get_font(), self.text_format.color))
             self.update_screenshot()
             self.text_edit.deleteLater()
             self.text_edit = None
@@ -255,8 +275,8 @@ class ScreenshotTool(QMainWindow):
             self.update_screenshot()
     
     def save_screenshot(self):
-        if self.screenshot:
+        if self.original_screenshot:
             filename, _ = QFileDialog.getSaveFileName(None, "Salvar Imagem", "screenshot.png", "PNG Files (*.png);;JPEG Files (*.jpg)")
             if filename:
-                self.screenshot.save(filename)
+                self.original_screenshot.save(filename)
                 QApplication.quit()
