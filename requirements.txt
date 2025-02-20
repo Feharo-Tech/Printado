@@ -2,3 +2,4 @@ PyQt5
 Pillow
 keyboard
 qtawesome
+mss

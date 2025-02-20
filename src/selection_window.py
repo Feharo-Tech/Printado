@@ -1,9 +1,10 @@
 import sys
 import time
+import mss
 from PyQt5.QtWidgets import QApplication, QWidget, QRubberBand
 from PyQt5.QtCore import Qt, QRect, QPoint
 from PyQt5.QtGui import QScreen
-from PIL import ImageGrab
+from PIL import Image
 
 class SelectionWindow(QWidget):
     def __init__(self, main_app):
@@ -40,13 +41,22 @@ class SelectionWindow(QWidget):
 
     def mouseReleaseEvent(self, event):
         self.hide()
-        time.sleep(0.2) 
+        time.sleep(0.2)
         rect = self.rubberBand.geometry()
 
-        if rect.width() > 10 and rect.height() > 10:
-            screenshot = ImageGrab.grab(bbox=(rect.x(), rect.y(), rect.x() + rect.width(), rect.y() + rect.height()))
-        else:
-            screenshot = ImageGrab.grab(all_screens=True) 
+        with mss.mss() as sct:
+            if rect.width() > 10 and rect.height() > 10:
+                raw_screenshot = sct.grab({
+                    "left": max(0, rect.x()), 
+                    "top": max(0, rect.y()),
+                    "width": rect.width(),
+                    "height": rect.height()
+                })
+                screenshot = Image.frombytes("RGB", raw_screenshot.size, raw_screenshot.rgb)
+            else:
+                monitor_full = sct.monitors[0]
+                raw_screenshot = sct.grab(monitor_full)
+                screenshot = Image.frombytes("RGB", raw_screenshot.size, raw_screenshot.rgb)
 
         self.main_app.process_screenshot(screenshot)
         self.close()
