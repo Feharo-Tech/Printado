@@ -10,10 +10,12 @@ from PyQt5.QtCore import Qt
 from PIL import ImageGrab, ImageDraw, ImageFont, ImageFilter
 from .selection_window import SelectionWindow
 from .text_format import TextFormat
+from .blur_background import BlurBackground
 
 class ScreenshotTool(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.blur_background = None
         self.setWindowTitle("Printado")
         self.screenshot = None
         self.texts = [] 
@@ -24,6 +26,7 @@ class ScreenshotTool(QMainWindow):
         self.text_edit = None
         self.text_format = TextFormat()
         self.initUI()
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.start_selection()
     
     def initUI(self):
@@ -73,6 +76,11 @@ class ScreenshotTool(QMainWindow):
         QApplication.setOverrideCursor(QCursor(Qt.CrossCursor))
         
     def process_screenshot(self, screenshot):
+        if not self.blur_background:
+            self.blur_background = BlurBackground(self)
+            self.blur_background.show_blur()
+            self.blur_background.lower()
+
         QApplication.restoreOverrideCursor()
         self.screenshot = screenshot
         self.original_screenshot = screenshot.copy()
