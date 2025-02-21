@@ -89,8 +89,8 @@ def apply_tooltip_style(parent):
             padding: 6px;
             font-size: 14px;
             border-radius: 8px;
-            border: 1px solid transparent; /*
-            qproperty-alignment: AlignCenter;
+            border: 1px solid {tooltip_bg};
+            text-align: center;
         }}
     """
 
