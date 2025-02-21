@@ -12,6 +12,7 @@ from .selection_window import SelectionWindow
 from .text_format import TextFormat
 from .blur_background import BlurBackground
 from .utils import delete_temp_screenshot
+from .toolbar import is_background_dark, update_button_styles, setup_toolbar_buttons
 
 class ScreenshotTool(QMainWindow):
     def __init__(self):
@@ -21,11 +22,12 @@ class ScreenshotTool(QMainWindow):
         self.screenshot = None
         self.texts = [] 
         self.history = []
-        self.selected_color = QColor(Qt.black)
+        self.selected_color = QColor(Qt.red)
         self.text_mode = False
         self.text_position = None
         self.text_edit = None
         self.text_format = TextFormat()
+        self.text_format.set_color(self.selected_color) 
         self.initUI()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.start_selection()
@@ -45,22 +47,7 @@ class ScreenshotTool(QMainWindow):
         self.toolbar = QVBoxLayout(self.toolbar_widget)
         self.toolbar.setAlignment(Qt.AlignBottom | Qt.AlignRight)
 
-        buttons = [
-            ("fa.i-cursor", self.enable_text_mode),
-            ("fa.font", self.select_font),
-            (None, self.select_color),
-            ("fa.undo", self.undo_last_action),
-            ("fa.save", self.save_screenshot),
-            ("fa.trash", QApplication.quit)
-        ]
-
-        for icon, action in buttons:
-            btn = QPushButton(qta.icon(icon), "") if icon else QPushButton()
-            btn.clicked.connect(action)
-            self.toolbar.addWidget(btn)
-            if not icon:
-                self.color_button = btn
-                self.update_color_button()
+        self.buttons = setup_toolbar_buttons(self)
 
         main_layout = QHBoxLayout()
         main_layout.addLayout(layout)
@@ -112,6 +99,9 @@ class ScreenshotTool(QMainWindow):
 
         pixmap = QPixmap("temp_screenshot.png")
         self.label.setPixmap(pixmap)
+
+        is_dark = is_background_dark(self.original_screenshot)
+        update_button_styles(self.toolbar_widget, is_dark, self.buttons)
 
         self.setFixedSize(self.new_width + 30 * 2, self.new_height + 10 * 2)
 
