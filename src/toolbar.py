@@ -52,23 +52,46 @@ def setup_toolbar_buttons(parent):
     buttons = {}
 
     button_data = {
-        "enable_text_mode": ("fa5s.i-cursor", parent.enable_text_mode),
-        "select_font": ("fa5s.font", parent.select_font),
-        "select_color": (None, parent.select_color),
-        "undo_last_action": ("fa5s.undo", parent.undo_last_action),
-        "save_screenshot": ("fa5s.save", parent.save_screenshot),
-        "quit": ("fa5s.trash", parent.close),
+        "enable_text_mode": ("fa5s.i-cursor", parent.enable_text_mode, "Modo Texto (Adicione texto à captura)"),
+        "select_font": ("fa5s.font", parent.select_font, "Selecionar Fonte (Escolha a fonte do texto)"),
+        "select_color": (None, parent.select_color, "Selecionar Cor (Muda a cor do texto)"),
+        "undo_last_action": ("fa5s.undo", parent.undo_last_action, "Desfazer (Remove a última ação)"),
+        "save_screenshot": ("fa5s.save", parent.save_screenshot, "Salvar Captura (Guarda a imagem no seu PC)"),
+        "quit": ("fa5s.trash", parent.close, "Descartar (Sai do aplicativo)"),
     }
 
-    for key, (icon, action) in button_data.items():
+    for key, (icon, action, tooltip) in button_data.items():
         btn = QPushButton(qta.icon(icon), "") if icon else QPushButton()
         btn.clicked.connect(action)
         parent.toolbar.addWidget(btn)
+        btn.setToolTip(tooltip)
         
         buttons[key] = btn
         
         if key == "select_color":
             parent.color_button = btn
             parent.update_color_button()
-
+            
+    apply_tooltip_style(parent)
+    
     return buttons
+  
+def apply_tooltip_style(parent):
+    is_dark = is_background_dark(parent.original_screenshot) if parent.screenshot else True
+
+    tooltip_bg = "#323232" if is_dark else "#FFFFFF"  
+    tooltip_color = "white" if is_dark else "black"
+
+    tooltip_style = f"""
+        QToolTip {{
+            background-color: {tooltip_bg};
+            color: {tooltip_color};
+            padding: 6px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: 1px solid transparent; /*
+            qproperty-alignment: AlignCenter;
+        }}
+    """
+
+    parent.setStyleSheet(tooltip_style)
