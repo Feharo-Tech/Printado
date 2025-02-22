@@ -73,12 +73,19 @@ class ScreenshotTool(QMainWindow):
         self.screenshot = screenshot
         self.original_screenshot = screenshot.copy()
 
+        min_width, min_height = 400, 300
+        max_width, max_height = 1024, 576
+
+        # max_width = 1024
+        # max_height = 576
+
+        # self.setFixedSize(max_width + 60, max_height + 20)  # Adiciona espaço para a toolbar
+
+        # self.centralWidget().setStyleSheet("background-color: black;")  # Fundo preto
+
         self.original_width, self.original_height = self.screenshot.size
-
-        max_width = 1024
-        max_height = 576
-
         aspect_ratio = self.original_width / self.original_height
+
         if self.original_width > max_width or self.original_height > max_height:
             if aspect_ratio > (max_width / max_height):
                 self.new_width = max_width
@@ -88,27 +95,47 @@ class ScreenshotTool(QMainWindow):
                 self.new_width = int(max_height * aspect_ratio)
             
             self.screenshot = self.screenshot.resize((self.new_width, self.new_height))
-            self.display_screenshot = self.screenshot.resize((self.new_width, self.new_height))
+            # self.display_screenshot = self.screenshot
+
+        # elif self.original_width < min_width or self.original_height < min_height:
+        #     # Mantém o tamanho mínimo de 400x300, mas sem redimensionar a imagem
+        #     self.new_width = max(self.original_width, min_width)
+        #     self.new_height = max(self.original_height, min_height)
 
         else:
-            self.new_width = self.original_width
-            self.new_height = self.original_height
-            self.display_screenshot = self.screenshot
+            self.new_width, self.new_height = self.original_width, self.original_height
+            # self.display_screenshot = self.screenshot
 
+        self.display_width = max(self.new_width, min_width)
+        self.display_height = max(self.new_height, min_height)
+
+        self.image_offset_x = (self.display_width - self.new_width) // 2
+        self.image_offset_y = (self.display_height - self.new_height) // 2
+
+        
+        # self.display_screenshot = self.screenshot
         self.screenshot.save("temp_screenshot.png")
 
         pixmap = QPixmap("temp_screenshot.png")
         self.label.setPixmap(pixmap)
 
-        is_dark = is_background_dark(self.original_screenshot)
-        update_button_styles(self.toolbar_widget, is_dark, self.buttons)
+        # self.setFixedSize(self.new_width + 30 * 2, self.new_height + 10 * 2)
+        # self.label.setFixedSize(max(self.new_width, min_width), max(self.new_height, min_height))
+        self.label.setFixedSize(self.display_width, self.display_height)
+        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setStyleSheet("background-color: transparent;")
 
-        self.setFixedSize(self.new_width + 30 * 2, self.new_height + 10 * 2)
+        # self.setFixedSize(self.display_width + 60, self.display_height + 20)
+
+        
 
         screen_geometry = QApplication.primaryScreen().geometry()
-        center_x = (screen_geometry.width() - self.new_width) // 2
-        center_y = (screen_geometry.height() - self.new_height) // 2
+        center_x = (screen_geometry.width() - max_width) // 2
+        center_y = (screen_geometry.height() - max_height) // 2
         self.move(center_x, center_y)
+
+        is_dark = is_background_dark(self.original_screenshot)
+        update_button_styles(self.toolbar_widget, is_dark, self.buttons)
 
         self.show()
         self.raise_()
@@ -213,11 +240,16 @@ class ScreenshotTool(QMainWindow):
             if self.new_width == 0 or self.new_height == 0:
                 return
 
-            label_x = self.label.pos().x()
-            label_y = self.label.pos().y()
+            # label_x = self.label.pos().x()
+            # label_y = self.label.pos().y()
+            # label_x = (self.label.width() - self.new_width) // 2
+            # label_y = (self.label.height() - self.new_height) // 2
 
-            adjusted_x = event.x() - label_x
-            adjusted_y = event.y() - label_y
+            # adjusted_x = event.x() - label_x
+            # adjusted_y = event.y() - label_y
+
+            adjusted_x = event.x() - self.image_offset_x
+            adjusted_y = event.y() - self.image_offset_y
 
             adjusted_x = max(0, min(adjusted_x, self.new_width))
             adjusted_y = max(0, min(adjusted_y, self.new_height))
@@ -230,11 +262,22 @@ class ScreenshotTool(QMainWindow):
     def show_text_input(self):
         if self.text_edit is not None:
             self.text_edit.deleteLater()
+
         self.text_edit = QLineEdit(self)
 
         x, y = self.text_position
 
-        self.text_edit.setGeometry(x, y, 200, 30)
+        # label_x = (self.label.width() - self.new_width) // 2
+        # label_y = (self.label.height() - self.new_height) // 2
+
+        # final_x = label_x + x
+        # final_y = label_y + y
+
+        final_x = self.image_offset_x + x
+        final_y = self.image_offset_y + y
+
+
+        self.text_edit.setGeometry(final_x, final_y, 200, 30)
         self.text_edit.setPlaceholderText("Digite seu texto aqui...")
 
         self.text_edit.returnPressed.connect(self.add_text_to_screenshot)
@@ -250,6 +293,9 @@ class ScreenshotTool(QMainWindow):
 
             scale_x = self.original_width / self.new_width
             scale_y = self.original_height / self.new_height
+
+            label_x = (self.label.width() - self.new_width) // 2
+            label_y = (self.label.height() - self.new_height) // 2
 
             adjusted_x = int(self.text_position[0] * scale_x)
             adjusted_y = int(self.text_position[1] * scale_y)
