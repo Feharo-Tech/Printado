@@ -15,7 +15,7 @@ def update_button_styles(toolbar_widget, is_dark, buttons):
     button_bg = "255, 255, 255" if is_dark else "0, 0, 0"
 
     toolbar_widget.setStyleSheet(
-        f"background: rgba({button_bg}, 0.1); border-radius: 8px; padding: 5px;"
+        f"background: rgba({button_bg}, 0.1); border-radius: 8px; margin-left:3px; padding: 5px;"
     )
 
     button_icons = {
