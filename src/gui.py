@@ -13,7 +13,7 @@ from .selection_window import SelectionWindow
 from .text_format import TextFormat
 from .blur_background import BlurBackground
 from .utils import delete_temp_screenshot
-from .toolbar import is_background_dark, update_button_styles, setup_toolbar_buttons
+from .toolbar import is_background_dark, update_button_styles, setup_toolbar_buttons, set_active_tool
 
 class ScreenshotTool(QMainWindow):
     def __init__(self):
@@ -212,11 +212,13 @@ class ScreenshotTool(QMainWindow):
             self.label.adjustSize()
     
     def enable_text_mode(self):
+        set_active_tool(self, "enable_text_mode")
         if self.screenshot is None:
             return  
         self.text_mode = True
 
     def select_font(self):
+        set_active_tool(self, "select_font")
         self.setAttribute(Qt.WA_TranslucentBackground, False)
         self.setStyleSheet("")
 
@@ -232,6 +234,7 @@ class ScreenshotTool(QMainWindow):
         self.setStyleSheet("background: transparent;")
     
     def select_color(self):
+        set_active_tool(self, "select_color")
         color = QColorDialog.getColor()
         if color.isValid():
             self.text_format.set_color(color.name()) 
@@ -267,7 +270,7 @@ class ScreenshotTool(QMainWindow):
             self.text_position = (adjusted_x, adjusted_y)
 
             self.show_text_input()
-            self.text_mode = False
+            # self.text_mode = False
 
     def mouseReleaseEvent(self, event):
         if self.arrow_mode and self.screenshot is not None and self.arrow_start:
@@ -326,6 +329,7 @@ class ScreenshotTool(QMainWindow):
             self.text_edit = None
 
     def enable_arrow_mode(self):
+        set_active_tool(self, "add_arrow")
         self.arrow_mode = not self.arrow_mode
         if self.arrow_mode:
             self.setCursor(QCursor(Qt.CrossCursor))
@@ -349,17 +353,15 @@ class ScreenshotTool(QMainWindow):
 
 
     def open_arrow_size_slider(self):
-        if hasattr(self, 'size_slider') and self.size_slider.isVisible():
-            self.size_slider.hide()
-            return
+        set_active_tool(self, "adjust_arrow_size") 
+        if not hasattr(self, 'size_slider'):
+            self.size_slider = QSlider(Qt.Horizontal, self)
+            self.size_slider.setMinimum(1)
+            self.size_slider.setMaximum(15)
+            self.size_slider.setValue(self.arrow_size)
+            self.size_slider.setGeometry(50, 50, 200, 50)
+            self.size_slider.valueChanged.connect(self.update_arrow_size)
 
-        self.size_slider = QSlider(Qt.Horizontal, self)
-        self.size_slider.setMinimum(1)
-        self.size_slider.setMaximum(15)
-        self.size_slider.setValue(self.arrow_size)
-        self.size_slider.setGeometry(50, 50, 200, 30)
-        self.size_slider.setToolTip("Ajustar Tamanho da Seta")
-        self.size_slider.valueChanged.connect(self.update_arrow_size)
         self.size_slider.show()
 
     def update_arrow_size(self, value):
@@ -376,6 +378,7 @@ class ScreenshotTool(QMainWindow):
             self.update_screenshot()
         
     def save_screenshot(self):
+        set_active_tool(self, "save_screenshot")
         if self.original_screenshot:
             filename, _ = QFileDialog.getSaveFileName(None, "Salvar Imagem", "screenshot.png", "PNG Files (*.png);;JPEG Files (*.jpg)")
             if filename:
