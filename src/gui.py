@@ -76,13 +76,6 @@ class ScreenshotTool(QMainWindow):
         min_width, min_height = 400, 300
         max_width, max_height = 1024, 576
 
-        # max_width = 1024
-        # max_height = 576
-
-        # self.setFixedSize(max_width + 60, max_height + 20)  # Adiciona espaço para a toolbar
-
-        # self.centralWidget().setStyleSheet("background-color: black;")  # Fundo preto
-
         self.original_width, self.original_height = self.screenshot.size
         aspect_ratio = self.original_width / self.original_height
 
@@ -95,16 +88,9 @@ class ScreenshotTool(QMainWindow):
                 self.new_width = int(max_height * aspect_ratio)
             
             self.screenshot = self.screenshot.resize((self.new_width, self.new_height))
-            # self.display_screenshot = self.screenshot
-
-        # elif self.original_width < min_width or self.original_height < min_height:
-        #     # Mantém o tamanho mínimo de 400x300, mas sem redimensionar a imagem
-        #     self.new_width = max(self.original_width, min_width)
-        #     self.new_height = max(self.original_height, min_height)
 
         else:
             self.new_width, self.new_height = self.original_width, self.original_height
-            # self.display_screenshot = self.screenshot
 
         self.display_width = max(self.new_width, min_width)
         self.display_height = max(self.new_height, min_height)
@@ -112,22 +98,14 @@ class ScreenshotTool(QMainWindow):
         self.image_offset_x = (self.display_width - self.new_width) // 2
         self.image_offset_y = (self.display_height - self.new_height) // 2
 
-        
-        # self.display_screenshot = self.screenshot
         self.screenshot.save("temp_screenshot.png")
 
         pixmap = QPixmap("temp_screenshot.png")
         self.label.setPixmap(pixmap)
 
-        # self.setFixedSize(self.new_width + 30 * 2, self.new_height + 10 * 2)
-        # self.label.setFixedSize(max(self.new_width, min_width), max(self.new_height, min_height))
         self.label.setFixedSize(self.display_width, self.display_height)
         self.label.setAlignment(Qt.AlignCenter)
         self.label.setStyleSheet("background-color: transparent;")
-
-        # self.setFixedSize(self.display_width + 60, self.display_height + 20)
-
-        
 
         screen_geometry = QApplication.primaryScreen().geometry()
         center_x = (screen_geometry.width() - max_width) // 2
@@ -240,14 +218,6 @@ class ScreenshotTool(QMainWindow):
             if self.new_width == 0 or self.new_height == 0:
                 return
 
-            # label_x = self.label.pos().x()
-            # label_y = self.label.pos().y()
-            # label_x = (self.label.width() - self.new_width) // 2
-            # label_y = (self.label.height() - self.new_height) // 2
-
-            # adjusted_x = event.x() - label_x
-            # adjusted_y = event.y() - label_y
-
             adjusted_x = event.x() - self.image_offset_x
             adjusted_y = event.y() - self.image_offset_y
 
@@ -266,12 +236,6 @@ class ScreenshotTool(QMainWindow):
         self.text_edit = QLineEdit(self)
 
         x, y = self.text_position
-
-        # label_x = (self.label.width() - self.new_width) // 2
-        # label_y = (self.label.height() - self.new_height) // 2
-
-        # final_x = label_x + x
-        # final_y = label_y + y
 
         final_x = self.image_offset_x + x
         final_y = self.image_offset_y + y
@@ -301,6 +265,7 @@ class ScreenshotTool(QMainWindow):
             adjusted_y = int(self.text_position[1] * scale_y)
 
             self.history.append((self.original_screenshot.copy(), list(self.texts)))
+
             self.texts.append((text_input, (adjusted_x, adjusted_y), self.text_format.get_font(), self.text_format.color))
             self.update_screenshot()
             self.text_edit.deleteLater()
@@ -308,9 +273,14 @@ class ScreenshotTool(QMainWindow):
     
     def undo_last_action(self):
         if self.history:  
-            self.screenshot, self.texts = self.history.pop()
+            last_screenshot, last_texts = self.history.pop()
+
+            self.original_screenshot = last_screenshot.copy()
+            self.screenshot = last_screenshot.copy()
+            self.texts = list(last_texts)
+
             self.update_screenshot()
-    
+        
     def save_screenshot(self):
         if self.original_screenshot:
             filename, _ = QFileDialog.getSaveFileName(None, "Salvar Imagem", "screenshot.png", "PNG Files (*.png);;JPEG Files (*.jpg)")
