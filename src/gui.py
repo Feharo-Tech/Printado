@@ -270,7 +270,7 @@ class ScreenshotTool(QMainWindow):
             self.text_position = (adjusted_x, adjusted_y)
 
             self.show_text_input()
-            self.text_mode = False
+            # self.text_mode = False
 
     def mouseReleaseEvent(self, event):
         if self.arrow_mode and self.screenshot is not None and self.arrow_start:
@@ -353,18 +353,15 @@ class ScreenshotTool(QMainWindow):
 
 
     def open_arrow_size_slider(self):
-        set_active_tool(self, "adjust_arrow_size")
-        if hasattr(self, 'size_slider') and self.size_slider.isVisible():
-            self.size_slider.hide()
-            return
+        set_active_tool(self, "adjust_arrow_size") 
+        if not hasattr(self, 'size_slider'):
+            self.size_slider = QSlider(Qt.Horizontal, self)
+            self.size_slider.setMinimum(1)
+            self.size_slider.setMaximum(15)
+            self.size_slider.setValue(self.arrow_size)
+            self.size_slider.setGeometry(50, 50, 200, 50)
+            self.size_slider.valueChanged.connect(self.update_arrow_size)
 
-        self.size_slider = QSlider(Qt.Horizontal, self)
-        self.size_slider.setMinimum(1)
-        self.size_slider.setMaximum(15)
-        self.size_slider.setValue(self.arrow_size)
-        self.size_slider.setGeometry(50, 50, 200, 30)
-        self.size_slider.setToolTip("Ajustar Tamanho da Seta")
-        self.size_slider.valueChanged.connect(self.update_arrow_size)
         self.size_slider.show()
 
     def update_arrow_size(self, value):

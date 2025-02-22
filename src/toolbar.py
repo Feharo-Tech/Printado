@@ -9,6 +9,7 @@ def is_background_dark(image):
     return brightness < 128
 
 def set_active_tool(parent, tool_name):
+
     tools = {
         "enable_text_mode": "text_mode",
         "select_font": "font_mode",
@@ -23,6 +24,10 @@ def set_active_tool(parent, tool_name):
 
     if tool_name in tools:
         setattr(parent, tools[tool_name], True)
+
+    if tool_name != "adjust_arrow_size":
+        if hasattr(parent, 'size_slider'):
+            parent.size_slider.hide()
 
     update_button_styles(parent.toolbar_widget, is_background_dark(parent.original_screenshot) if parent.screenshot else True, parent.buttons, tool_name)
 
