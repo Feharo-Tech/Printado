@@ -21,6 +21,8 @@ def update_button_styles(toolbar_widget, is_dark, buttons):
     button_icons = {
         "enable_text_mode": "fa5s.i-cursor",
         "select_font": "fa5s.font",
+        "add_arrow": "fa5s.long-arrow-alt-right",
+        "adjust_arrow_size": "fa5s.arrows-alt-v",
         "undo_last_action": "fa5s.undo",
         "save_screenshot": "fa5s.save",
         "quit": "fa5s.times",
@@ -55,6 +57,8 @@ def setup_toolbar_buttons(parent):
         "enable_text_mode": ("fa5s.i-cursor", parent.enable_text_mode, "Modo Texto (Adicione texto à captura)"),
         "select_font": ("fa5s.font", parent.select_font, "Selecionar Fonte (Escolha a fonte do texto)"),
         "select_color": (None, parent.select_color, "Selecionar Cor (Muda a cor do texto)"),
+        "add_arrow": ("fa5s.long-arrow-alt-right", parent.enable_arrow_mode, "Adicionar Seta (Clique e arraste para desenhar)"),
+        "adjust_arrow_size": ("fa5s.arrows-alt-v", parent.open_arrow_size_slider, "Ajustar Tamanho da Seta"),
         "undo_last_action": ("fa5s.undo", parent.undo_last_action, "Desfazer (Remove a última ação)"),
         "save_screenshot": ("fa5s.save", parent.save_screenshot, "Salvar Captura (Guarda a imagem no seu PC)"),
         "quit": ("fa5s.times", parent.close, "Descartar (Sai do aplicativo)"),
