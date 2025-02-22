@@ -23,7 +23,7 @@ def update_button_styles(toolbar_widget, is_dark, buttons):
         "select_font": "fa5s.font",
         "undo_last_action": "fa5s.undo",
         "save_screenshot": "fa5s.save",
-        "quit": "fa5s.trash",
+        "quit": "fa5s.times",
     }
 
     for key, btn in buttons.items():
@@ -57,7 +57,7 @@ def setup_toolbar_buttons(parent):
         "select_color": (None, parent.select_color, "Selecionar Cor (Muda a cor do texto)"),
         "undo_last_action": ("fa5s.undo", parent.undo_last_action, "Desfazer (Remove a última ação)"),
         "save_screenshot": ("fa5s.save", parent.save_screenshot, "Salvar Captura (Guarda a imagem no seu PC)"),
-        "quit": ("fa5s.trash", parent.close, "Descartar (Sai do aplicativo)"),
+        "quit": ("fa5s.times", parent.close, "Descartar (Sai do aplicativo)"),
     }
 
     for key, (icon, action, tooltip) in button_data.items():
