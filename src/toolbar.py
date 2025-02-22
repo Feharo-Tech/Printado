@@ -111,4 +111,20 @@ def setup_toolbar_buttons(parent):
             parent.update_color_button()
 
     parent.buttons = buttons
+    apply_tooltip_style(parent)
+
     return buttons
+
+
+def apply_tooltip_style(parent):
+    is_dark = is_background_dark(parent.original_screenshot) if parent.screenshot else True
+
+    tooltip_color = "white" if is_dark else "black"
+
+    tooltip_style = f"""
+        QToolTip {{
+            color: {tooltip_color};
+        }}
+    """
+
+    parent.setStyleSheet(tooltip_style)
