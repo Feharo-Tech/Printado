@@ -30,7 +30,7 @@ class ScreenshotTool(QMainWindow):
         self.text_format = TextFormat()
         self.text_format.set_color(self.selected_color) 
         self.arrow_mode = False
-        self.arrow_size = 5
+        self.tool_size = 5
         self.arrow_start = None
         self.arrow_end = None
         self.line_mode = False
@@ -147,7 +147,7 @@ class ScreenshotTool(QMainWindow):
             for text_data in self.texts:
                 if text_data[0] == "arrow":
                     start_x, start_y, end_x, end_y = text_data[1]
-                    arrow_size = text_data[2]
+                    tool_size = text_data[2]
                     color = text_data[3]
                     
                     start_x = int(start_x * scale_x)
@@ -155,11 +155,11 @@ class ScreenshotTool(QMainWindow):
                     end_x = int(end_x * scale_x)
                     end_y = int(end_y * scale_y)
 
-                    draw.line((start_x, start_y, end_x, end_y), fill=color, width=max(2, arrow_size))
+                    draw.line((start_x, start_y, end_x, end_y), fill=color, width=max(2, tool_size))
 
                     angle = math.atan2(end_y - start_y, end_x - start_x)
 
-                    arrow_head_size = max(8, arrow_size * 4)
+                    arrow_head_size = max(8, tool_size * 4)
 
                     line_end_x = end_x - (arrow_head_size * 0.6) * math.cos(angle)
                     line_end_y = end_y - (arrow_head_size * 0.6) * math.sin(angle)
@@ -419,7 +419,7 @@ class ScreenshotTool(QMainWindow):
             start_x, start_y = int(self.arrow_start[0]), int(self.arrow_start[1])
             end_x, end_y = int(self.arrow_end[0]), int(self.arrow_end[1])
 
-            self.texts.append(("arrow", (start_x, start_y, end_x, end_y), self.arrow_size, self.selected_color.name()))
+            self.texts.append(("arrow", (start_x, start_y, end_x, end_y), self.tool_size, self.selected_color.name()))
 
             self.update_screenshot()
 
@@ -427,20 +427,20 @@ class ScreenshotTool(QMainWindow):
             self.arrow_end = None
 
 
-    def open_arrow_size_slider(self):
-        set_active_tool(self, "adjust_arrow_size") 
+    def open_size_slider(self):
+        set_active_tool(self, "adjust_size") 
         if not hasattr(self, 'size_slider'):
             self.size_slider = QSlider(Qt.Horizontal, self)
             self.size_slider.setMinimum(1)
             self.size_slider.setMaximum(15)
-            self.size_slider.setValue(self.arrow_size)
+            self.size_slider.setValue(self.tool_size)
             self.size_slider.setGeometry(50, 50, 200, 50)
-            self.size_slider.valueChanged.connect(self.update_arrow_size)
+            self.size_slider.valueChanged.connect(self.update_size)
 
         self.size_slider.show()
 
-    def update_arrow_size(self, value):
-        self.arrow_size = value
+    def update_size(self, value):
+        self.tool_size = value
 
     def add_line_to_screenshot(self):
         set_active_tool(self, "add_line")
@@ -450,7 +450,7 @@ class ScreenshotTool(QMainWindow):
             start_x, start_y = int(self.line_start[0]), int(self.line_start[1])
             end_x, end_y = int(self.line_end[0]), int(self.line_end[1])
 
-            self.texts.append(("line", (start_x, start_y, end_x, end_y), self.arrow_size, self.selected_color.name()))
+            self.texts.append(("line", (start_x, start_y, end_x, end_y), self.tool_size, self.selected_color.name()))
 
             self.update_screenshot()
 
@@ -469,7 +469,7 @@ class ScreenshotTool(QMainWindow):
             end_x = max(self.rectangle_start[0], self.rectangle_end[0])
             end_y = max(self.rectangle_start[1], self.rectangle_end[1])
 
-            self.texts.append(("rectangle", (start_x, start_y, end_x, end_y), self.arrow_size, self.selected_color.name()))
+            self.texts.append(("rectangle", (start_x, start_y, end_x, end_y), self.tool_size, self.selected_color.name()))
 
             self.update_screenshot()
 
