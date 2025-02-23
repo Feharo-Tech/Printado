@@ -4,3 +4,5 @@ keyboard
 qtawesome
 mss
 pynput
+pyperclip
+python-dotenv

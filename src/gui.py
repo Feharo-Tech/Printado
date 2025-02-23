@@ -2,9 +2,10 @@ import os
 import re
 import time
 import math
+import requests
 import qtawesome as qta
 
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QHBoxLayout, QFileDialog, QLineEdit, QColorDialog, QApplication, QFontDialog, QSlider
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QHBoxLayout, QFileDialog, QLineEdit, QColorDialog, QApplication, QFontDialog, QSlider, QMessageBox
 from PyQt5.QtGui import QPixmap, QIcon, QColor, QCursor
 from PyQt5.QtCore import Qt
 
@@ -14,6 +15,8 @@ from .text_format import TextFormat
 from .blur_background import BlurBackground
 from .utils import delete_temp_screenshot
 from .toolbar import is_background_dark, update_button_styles, setup_toolbar_buttons, set_active_tool
+from .upload_dialog import UploadDialog
+
 
 class ScreenshotTool(QMainWindow):
     def __init__(self):
@@ -483,7 +486,16 @@ class ScreenshotTool(QMainWindow):
             self.texts = list(last_texts)
 
             self.update_screenshot()
-        
+
+    def upload_screenshot(self):
+        if self.screenshot:
+            filename = "temp_screenshot.png"
+            self.screenshot.save(filename)
+
+            self.upload_dialog = UploadDialog(self)
+            self.upload_dialog.start_upload(filename)
+            self.upload_dialog.exec_()
+            
     def save_screenshot(self):
         set_active_tool(self, "save_screenshot")
         if self.original_screenshot:

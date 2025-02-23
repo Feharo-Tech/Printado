@@ -19,6 +19,7 @@ def set_active_tool(parent, tool_name):
         "add_line": "line_mode",
         "add_rectangle": "rectangle_mode",
         "adjust_size": "size_mode",
+        "upload_screenshot": "upload_mode",
         "save_screenshot": "save_mode",
     }
 
@@ -56,6 +57,7 @@ def update_button_styles(toolbar_widget, is_dark, buttons, active_tool=None):
         "add_rectangle": "fa5s.border-style",
         "adjust_size": "fa5s.arrows-alt-h",
         "undo_last_action": "fa5s.undo",
+        "upload_screenshot": "fa5s.cloud-upload-alt",
         "save_screenshot": "fa5s.save",
         "quit": "fa5s.times",
     }
@@ -106,6 +108,7 @@ def setup_toolbar_buttons(parent):
         "add_rectangle": ("fa5s.square", lambda: set_active_tool(parent, "add_rectangle"), "Adicionar Retângulo"),
         "adjust_size": ("fa5s.arrows-alt-h", parent.open_size_slider, "Ajustar Tamanho/Espessura"),
         "undo_last_action": ("fa5s.undo", parent.undo_last_action, "Desfazer"),
+        "upload_screenshot": ("fa5s.cloud-upload-alt", parent.upload_screenshot, "Fazer Upload da Captura"),
         "save_screenshot": ("fa5s.save", parent.save_screenshot, "Salvar Captura"),
         "quit": ("fa5s.times", parent.close, "Descartar"),
     }
