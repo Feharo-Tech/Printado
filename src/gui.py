@@ -270,7 +270,7 @@ class ScreenshotTool(QMainWindow):
             adjusted_y = max(0, min(adjusted_y, self.new_height))
 
             self.line_start = (adjusted_x, adjusted_y)
-            print(f"➡️ Início da linha definido: {self.line_start}")
+
 
         if self.arrow_mode and self.screenshot is not None:
             adjusted_x = event.x() - self.image_offset_x
@@ -295,7 +295,6 @@ class ScreenshotTool(QMainWindow):
             self.text_position = (adjusted_x, adjusted_y)
 
             self.show_text_input()
-            # self.text_mode = False
 
     def mouseReleaseEvent(self, event):
         if self.line_mode and self.screenshot is not None and self.line_start:
@@ -306,7 +305,6 @@ class ScreenshotTool(QMainWindow):
             adjusted_y = max(0, min(adjusted_y, self.new_height))
 
             self.line_end = (adjusted_x, adjusted_y)
-            print(f"⬅️ Fim da linha definido: {self.line_end}")
 
             self.add_line_to_screenshot()
             self.line_start = None
