@@ -1,7 +1,7 @@
 import sys
 import time
 import mss
-from PyQt5.QtWidgets import QApplication, QWidget, QRubberBand
+from PyQt5.QtWidgets import QApplication, QWidget, QRubberBand, QLabel
 from PyQt5.QtCore import Qt, QRect, QPoint
 from PyQt5.QtGui import QScreen
 from PIL import Image
@@ -20,6 +20,16 @@ class SelectionWindow(QWidget):
         self.origin = QPoint()
         self.rubberBand = QRubberBand(QRubberBand.Rectangle, self)
 
+        self.size_label = QLabel(self)
+        self.size_label.setStyleSheet("""
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px;
+            border-radius: 4px;
+            font-size: 12px;
+        """)
+        self.size_label.hide()
+
         self.show() 
 
     def get_combined_screen_geometry(self):
@@ -36,8 +46,48 @@ class SelectionWindow(QWidget):
         self.rubberBand.setGeometry(QRect(self.origin, self.origin))
         self.rubberBand.show()
 
+        self.size_label.setText("0 x 0 px")
+        self.size_label.move(self.origin.x() - 0, self.origin.y() - 25)
+        self.size_label.show()
+
     def mouseMoveEvent(self, event):
-        self.rubberBand.setGeometry(QRect(self.origin, event.globalPos()).normalized())
+        current_pos = event.globalPos()
+
+        width = abs(current_pos.x() - self.origin.x())
+        height = abs(current_pos.y() - self.origin.y())
+
+        selection_rect = QRect(
+            QPoint(min(self.origin.x(), current_pos.x()), min(self.origin.y(), current_pos.y())),
+            QPoint(max(self.origin.x(), current_pos.x()), max(self.origin.y(), current_pos.y()))
+        )
+        self.rubberBand.setGeometry(selection_rect)
+
+        label_text = f"{width} x {height} px"
+        self.size_label.setText(label_text)
+        self.size_label.adjustSize()
+
+        label_width = self.size_label.width()
+        label_height = self.size_label.height()
+
+        options = [
+            (selection_rect.left() + 10, selection_rect.top() - label_height - 10),
+            (selection_rect.left() + 10, selection_rect.bottom() + 10),
+            (selection_rect.left() - label_width - 10, selection_rect.top() + 10),
+            (selection_rect.right() + 10, selection_rect.top() + 10)
+        ]
+
+
+        for x, y in options:
+            if (0 <= x <= self.screen_rect.width() - label_width and
+                0 <= y <= self.screen_rect.height() - label_height):
+                label_x, label_y = x, y
+                break
+        else:
+            label_x = max(0, min(current_pos.x(), self.screen_rect.width() - label_width))
+            label_y = max(0, min(current_pos.y(), self.screen_rect.height() - label_height))
+
+        self.size_label.move(label_x, label_y)
+
 
     def mouseReleaseEvent(self, event):
         self.hide()
