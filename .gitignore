@@ -7,3 +7,4 @@ printado_deb.deb
 debian/
 src/__pycache__/
 printado_deb/
+.env
