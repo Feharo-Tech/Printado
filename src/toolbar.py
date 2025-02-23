@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtCore import Qt
 import qtawesome as qta
 from PIL import ImageStat
 
@@ -25,6 +26,11 @@ def set_active_tool(parent, tool_name):
 
     if tool_name in tools:
         setattr(parent, tools[tool_name], True)
+
+    if tool_name in ["add_arrow", "add_line"]:
+        parent.setCursor(Qt.CrossCursor)
+    else:
+        parent.setCursor(Qt.ArrowCursor)
 
     if tool_name != "adjust_arrow_size":
         if hasattr(parent, 'size_slider'):
