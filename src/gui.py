@@ -33,6 +33,9 @@ class ScreenshotTool(QMainWindow):
         self.arrow_size = 5
         self.arrow_start = None
         self.arrow_end = None
+        self.line_mode = False
+        self.line_start = None
+        self.line_end = None
         self.initUI()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.start_selection()
@@ -168,6 +171,18 @@ class ScreenshotTool(QMainWindow):
 
                     draw.polygon([(tip_x, tip_y), (left_x, left_y), (right_x, right_y)], fill=color)
 
+                elif text_data[0] == "line":
+                    start_x, start_y, end_x, end_y = text_data[1]
+                    line_size = text_data[2]
+                    color = text_data[3]
+
+                    start_x = int(start_x * scale_x)
+                    start_y = int(start_y * scale_y)
+                    end_x = int(end_x * scale_x)
+                    end_y = int(end_y * scale_y)
+
+                    draw.line((start_x, start_y, end_x, end_y), fill=color, width=max(2, line_size))
+
                 else:
                     text, pos, font, color = text_data
                     if isinstance(color, QColor):  
@@ -247,6 +262,16 @@ class ScreenshotTool(QMainWindow):
         self.color_button.setIcon(QIcon(pixmap))
     
     def mousePressEvent(self, event):
+        if self.line_mode and self.screenshot is not None:
+            adjusted_x = event.x() - self.image_offset_x
+            adjusted_y = event.y() - self.image_offset_y
+
+            adjusted_x = max(0, min(adjusted_x, self.new_width))
+            adjusted_y = max(0, min(adjusted_y, self.new_height))
+
+            self.line_start = (adjusted_x, adjusted_y)
+            print(f"➡️ Início da linha definido: {self.line_start}")
+
         if self.arrow_mode and self.screenshot is not None:
             adjusted_x = event.x() - self.image_offset_x
             adjusted_y = event.y() - self.image_offset_y
@@ -273,6 +298,20 @@ class ScreenshotTool(QMainWindow):
             # self.text_mode = False
 
     def mouseReleaseEvent(self, event):
+        if self.line_mode and self.screenshot is not None and self.line_start:
+            adjusted_x = event.x() - self.image_offset_x
+            adjusted_y = event.y() - self.image_offset_y
+
+            adjusted_x = max(0, min(adjusted_x, self.new_width))
+            adjusted_y = max(0, min(adjusted_y, self.new_height))
+
+            self.line_end = (adjusted_x, adjusted_y)
+            print(f"⬅️ Fim da linha definido: {self.line_end}")
+
+            self.add_line_to_screenshot()
+            self.line_start = None
+            self.line_end = None
+
         if self.arrow_mode and self.screenshot is not None and self.arrow_start:
             adjusted_x = event.x() - self.image_offset_x
             adjusted_y = event.y() - self.image_offset_y
@@ -366,6 +405,21 @@ class ScreenshotTool(QMainWindow):
 
     def update_arrow_size(self, value):
         self.arrow_size = value
+
+    def add_line_to_screenshot(self):
+        if self.screenshot and self.line_start and self.line_end:
+            self.history.append((self.screenshot.copy(), list(self.texts)))
+
+            start_x, start_y = int(self.line_start[0]), int(self.line_start[1])
+            end_x, end_y = int(self.line_end[0]), int(self.line_end[1])
+
+            self.texts.append(("line", (start_x, start_y, end_x, end_y), self.arrow_size, self.selected_color.name()))
+
+            self.update_screenshot()
+
+            self.line_start = None
+            self.line_end = None
+
             
     def undo_last_action(self):
         if self.history:  
