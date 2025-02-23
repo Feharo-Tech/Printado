@@ -17,6 +17,7 @@ def set_active_tool(parent, tool_name):
         "select_color": "color_mode",
         "add_arrow": "arrow_mode",
         "add_line": "line_mode",
+        "add_rectangle": "rectangle_mode",
         "adjust_arrow_size": "size_mode",
         "save_screenshot": "save_mode",
     }
@@ -27,7 +28,7 @@ def set_active_tool(parent, tool_name):
     if tool_name in tools:
         setattr(parent, tools[tool_name], True)
 
-    if tool_name in ["add_arrow", "add_line"]:
+    if tool_name in ["add_arrow", "add_line", "add_rectangle"]:
         parent.setCursor(Qt.CrossCursor)
     else:
         parent.setCursor(Qt.ArrowCursor)
@@ -52,6 +53,7 @@ def update_button_styles(toolbar_widget, is_dark, buttons, active_tool=None):
         "select_font": "fa5s.font",
         "add_arrow": "fa5s.long-arrow-alt-right",
         "add_line": "fa5s.minus",
+        "add_rectangle": "fa5s.border-style",
         "adjust_arrow_size": "fa5s.arrows-alt-v",
         "undo_last_action": "fa5s.undo",
         "save_screenshot": "fa5s.save",
@@ -101,6 +103,7 @@ def setup_toolbar_buttons(parent):
         "select_color": (None, parent.select_color, "Selecionar Cor"),
         "add_arrow": ("fa5s.long-arrow-alt-right", lambda: set_active_tool(parent, "add_arrow"), "Adicionar Seta"),
         "add_line": ("fa5s.minus", lambda: set_active_tool(parent, "add_line"), "Adicionar Linha"),
+        "add_rectangle": ("fa5s.square", lambda: set_active_tool(parent, "add_rectangle"), "Adicionar Retângulo"),
         "adjust_arrow_size": ("fa5s.arrows-alt-v", parent.open_arrow_size_slider, "Ajustar Tamanho/Espessura"),
         "undo_last_action": ("fa5s.undo", parent.undo_last_action, "Desfazer"),
         "save_screenshot": ("fa5s.save", parent.save_screenshot, "Salvar Captura"),

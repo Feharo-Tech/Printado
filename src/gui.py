@@ -36,6 +36,9 @@ class ScreenshotTool(QMainWindow):
         self.line_mode = False
         self.line_start = None
         self.line_end = None
+        self.rectangle_mode = False
+        self.rectangle_start = None
+        self.rectangle_end = None
         self.initUI()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.start_selection()
@@ -183,6 +186,18 @@ class ScreenshotTool(QMainWindow):
 
                     draw.line((start_x, start_y, end_x, end_y), fill=color, width=max(2, line_size))
 
+                elif text_data[0] == "rectangle":
+                    start_x, start_y, end_x, end_y = text_data[1]
+                    rect_size = text_data[2]
+                    color = text_data[3]
+
+                    start_x = int(start_x * scale_x)
+                    start_y = int(start_y * scale_y)
+                    end_x = int(end_x * scale_x)
+                    end_y = int(end_y * scale_y)
+
+                    draw.rectangle([start_x, start_y, end_x, end_y], outline=color, width=rect_size)
+
                 else:
                     text, pos, font, color = text_data
                     if isinstance(color, QColor):  
@@ -262,6 +277,16 @@ class ScreenshotTool(QMainWindow):
         self.color_button.setIcon(QIcon(pixmap))
     
     def mousePressEvent(self, event):
+        if self.rectangle_mode and self.screenshot is not None:
+            adjusted_x = event.x() - self.image_offset_x
+            adjusted_y = event.y() - self.image_offset_y
+
+            adjusted_x = max(0, min(adjusted_x, self.new_width))
+            adjusted_y = max(0, min(adjusted_y, self.new_height))
+
+            self.rectangle_start = (adjusted_x, adjusted_y)
+
+
         if self.line_mode and self.screenshot is not None:
             adjusted_x = event.x() - self.image_offset_x
             adjusted_y = event.y() - self.image_offset_y
@@ -297,6 +322,19 @@ class ScreenshotTool(QMainWindow):
             self.show_text_input()
 
     def mouseReleaseEvent(self, event):
+        if self.rectangle_mode and self.screenshot is not None and self.rectangle_start:
+            adjusted_x = event.x() - self.image_offset_x
+            adjusted_y = event.y() - self.image_offset_y
+
+            adjusted_x = max(0, min(adjusted_x, self.new_width))
+            adjusted_y = max(0, min(adjusted_y, self.new_height))
+
+            self.rectangle_end = (adjusted_x, adjusted_y)
+
+            self.add_rectangle_to_screenshot()
+            self.rectangle_start = None
+            self.rectangle_end = None
+
         if self.line_mode and self.screenshot is not None and self.line_start:
             adjusted_x = event.x() - self.image_offset_x
             adjusted_y = event.y() - self.image_offset_y
@@ -405,6 +443,7 @@ class ScreenshotTool(QMainWindow):
         self.arrow_size = value
 
     def add_line_to_screenshot(self):
+        set_active_tool(self, "add_line")
         if self.screenshot and self.line_start and self.line_end:
             self.history.append((self.screenshot.copy(), list(self.texts)))
 
@@ -417,6 +456,22 @@ class ScreenshotTool(QMainWindow):
 
             self.line_start = None
             self.line_end = None
+
+
+    def add_rectangle_to_screenshot(self):
+        set_active_tool(self, "add_rectangle")
+        if self.screenshot and self.rectangle_start and self.rectangle_end:
+
+            self.history.append((self.screenshot.copy(), list(self.texts)))
+
+            start_x = min(self.rectangle_start[0], self.rectangle_end[0])
+            start_y = min(self.rectangle_start[1], self.rectangle_end[1])
+            end_x = max(self.rectangle_start[0], self.rectangle_end[0])
+            end_y = max(self.rectangle_start[1], self.rectangle_end[1])
+
+            self.texts.append(("rectangle", (start_x, start_y, end_x, end_y), self.arrow_size, self.selected_color.name()))
+
+            self.update_screenshot()
 
             
     def undo_last_action(self):
