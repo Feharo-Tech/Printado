@@ -16,10 +16,10 @@ class UploadDialog(QDialog):
 
         is_dark = is_background_dark(parent.original_screenshot) if parent.screenshot else True
 
-        bg_color = "rgba(30, 30, 30, 0.85)" if is_dark else "rgba(255, 255, 255, 0.85)"
-        text_color = "white" if is_dark else "black"
-        button_color = "black" if is_dark else "white"
-        button_bg = "255, 255, 255" if is_dark else "0, 0, 0"
+        bg_color = "rgba(255, 255, 255, 0.85)" if is_dark else "rgba(30, 30, 30, 0.85)"
+        text_color = "black" if is_dark else "white"
+        button_color = "white" if is_dark else "black"
+        button_bg = "0, 0, 0" if is_dark else "255, 255, 255"
 
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
