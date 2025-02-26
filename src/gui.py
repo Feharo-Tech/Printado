@@ -16,6 +16,7 @@ from .blur_background import BlurBackground
 from .utils import delete_temp_screenshot
 from .toolbar import is_background_dark, update_button_styles, setup_toolbar_buttons, set_active_tool
 from .upload_dialog import UploadDialog
+from .update_checker import check_for_update
 
 
 class ScreenshotTool(QMainWindow):
@@ -78,6 +79,7 @@ class ScreenshotTool(QMainWindow):
         QApplication.setOverrideCursor(QCursor(Qt.CrossCursor))
         
     def process_screenshot(self, screenshot):
+        check_for_update(self)
         if not self.blur_background:
             self.blur_background = BlurBackground(self)
             self.blur_background.show_blur()
@@ -504,3 +506,25 @@ class ScreenshotTool(QMainWindow):
                 self.original_screenshot.save(filename)
                 delete_temp_screenshot()
                 QApplication.quit()
+
+    def notify_update():
+        latest_version, download_url, changelog = check_for_update()
+        if latest_version:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle("Atualização Disponível!")
+            
+            changelog_text = "\n".join(f"• {item}" for item in changelog) if changelog else "Nenhuma informação disponível."
+
+            msg.setText(
+                f"Uma nova versão do Printado está disponível: {latest_version}\n\n"
+                f"🆕 Novidades:\n{changelog_text}\n\n"
+                f"📥 Deseja baixar agora?"
+            )
+
+            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            
+            response = msg.exec_()
+            if response == QMessageBox.Yes:
+                import webbrowser
+                webbrowser.open(download_url)
