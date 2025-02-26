@@ -42,7 +42,7 @@ class UpdateDialog(QDialog):
         bg_color = "rgba(255, 255, 255, 0.85)" if is_dark else "rgba(30, 30, 30, 0.85)"
         text_color = "black" if is_dark else "white"
         button_color = "white" if is_dark else "black"
-        button_bg = "rgba(68, 68, 68, 0.9)" if is_dark else "rgba(220, 220, 220, 0.9)"
+        button_bg = "0, 0, 0" if is_dark else "255, 255, 255"
 
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -81,13 +81,13 @@ class UpdateDialog(QDialog):
         self.download_button.clicked.connect(lambda: webbrowser.open_new_tab(download_url))
         self.download_button.setStyleSheet(f"""
             QPushButton {{
-                background-color: {button_bg};
+                background-color: rgba({button_bg}, 0.7);
                 color: {button_color};
-                border-radius: 6px;
-                padding: 8px;
+                border-radius: 5px;
+                padding: 6px;
             }}
             QPushButton:hover {{
-                background-color: rgba(100, 100, 100, 0.7);
+                background-color: rgba({button_bg}, 0.4);
             }}
         """)
 
@@ -95,13 +95,13 @@ class UpdateDialog(QDialog):
         self.remind_button.clicked.connect(self.close)
         self.remind_button.setStyleSheet(f"""
             QPushButton {{
-                background-color: {button_bg};
+                background-color: rgba({button_bg}, 0.7);
                 color: {button_color};
-                border-radius: 6px;
-                padding: 8px;
+                border-radius: 5px;
+                padding: 6px;
             }}
             QPushButton:hover {{
-                background-color: rgba(100, 100, 100, 0.7);
+                background-color: rgba({button_bg}, 0.4);
             }}
         """)
 
