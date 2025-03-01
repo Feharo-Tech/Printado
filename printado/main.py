@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication
-from modules.gui import ScreenshotTool
+from printado.modules.gui import ScreenshotTool
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

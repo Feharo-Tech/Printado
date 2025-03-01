@@ -5,7 +5,7 @@ import webbrowser
 from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QPushButton, QHBoxLayout, QWidget
 from PyQt5.QtCore import Qt, QTimer
 import qtawesome as qta
-from config import Config
+from printado.config import Config
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
