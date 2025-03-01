@@ -1,5 +1,5 @@
 from pynput import keyboard
-from src.utils import delete_temp_screenshot
+from printado.core.utils import delete_temp_screenshot
 import subprocess
 import sys
 import os

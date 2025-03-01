@@ -2,24 +2,21 @@ import os
 import sys
 import requests
 import webbrowser
-from dotenv import load_dotenv
 from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout, QPushButton, QHBoxLayout, QWidget
 from PyQt5.QtCore import Qt, QTimer
 import qtawesome as qta
+from config import Config
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from version import __version__
-from .toolbar import is_background_dark
+from core.toolbar import is_background_dark
 
-load_dotenv()
-
-BASE_URL = os.getenv("BASE_URL")
-UPDATE_URL = BASE_URL + "latest_version.json"
+UPDATE_CHECK_URL = f"{Config.BASE_URL}latest_version.json"
 
 def check_for_update(parent):
     try:
-        response = requests.get(UPDATE_URL, timeout=5)
+        response = requests.get(UPDATE_CHECK_URL, timeout=5)
         if response.status_code == 200:
             data = response.json()
             latest_version = data.get("latest_version", __version__)
