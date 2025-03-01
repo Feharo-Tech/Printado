@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtCore import Qt
 import qtawesome as qta
 from PIL import ImageStat
+from printado.core.theme import get_theme
 
 def is_background_dark(image):
     grayscale_image = image.convert("L")
@@ -42,11 +43,10 @@ def set_active_tool(parent, tool_name):
 
 
 def update_button_styles(toolbar_widget, is_dark, buttons, active_tool=None):
-    button_color = "black" if is_dark else "white"
-    button_bg = "255, 255, 255" if is_dark else "0, 0, 0"
+    theme = get_theme(is_dark)
 
     toolbar_widget.setStyleSheet(
-        f"background: rgba({button_bg}, 0.1); border-radius: 8px; margin-left:3px; padding: 5px;"
+        f"background: rgba({theme['button_bg']}, 0.1); border-radius: 8px; margin-left:3px; padding: 5px;"
     )
 
     button_icons = {
@@ -64,15 +64,15 @@ def update_button_styles(toolbar_widget, is_dark, buttons, active_tool=None):
 
     for key, btn in buttons.items():
         if key in button_icons:
-            new_icon = qta.icon(button_icons[key], color=button_color)
+            new_icon = qta.icon(button_icons[key], color=theme['button_color'])
             btn.setIcon(new_icon)
 
         if key == active_tool:
             btn.setStyleSheet(f"""
                 QPushButton {{
-                    background-color: rgba({button_bg}, 0.4);
-                    color: {button_color};
-                    border: 1px solid rgba({button_bg}, 0.5);
+                    background-color: rgba({theme['button_bg']}, 0.4);
+                    color: {theme['button_color']};
+                    border: 1px solid rgba({theme['button_bg']}, 0.5);
                     border-radius: 5px;
                     padding: 8px;
                     font-weight: bold;
@@ -81,18 +81,18 @@ def update_button_styles(toolbar_widget, is_dark, buttons, active_tool=None):
         else:
             btn.setStyleSheet(f"""
                 QPushButton {{
-                    background-color: rgba({button_bg}, 0.7);
-                    color: {button_color};
-                    border: 1px solid rgba({button_bg}, 0.5);
+                    background-color: rgba({theme['button_bg']}, 0.7);
+                    color: {theme['button_color']};
+                    border: 1px solid rgba({theme['button_bg']}, 0.5);
                     border-radius: 5px;
                     padding: 8px;
                     font-weight: bold;
                 }}
                 QPushButton:hover {{
-                    background-color: rgba({button_bg}, 0.4);
+                    background-color: rgba({theme['button_bg']}, 0.4);
                 }}
                 QPushButton:pressed {{
-                    background-color: rgba({button_bg}, 0.6);
+                    background-color: rgba({theme['button_bg']}, 0.6);
                 }}
             """)
 
@@ -133,12 +133,11 @@ def setup_toolbar_buttons(parent):
 
 def apply_tooltip_style(parent):
     is_dark = is_background_dark(parent.original_screenshot) if parent.screenshot else True
-
-    tooltip_color = "white" if is_dark else "black"
-
+    theme = get_theme(is_dark)
+   
     tooltip_style = f"""
         QToolTip {{
-            color: {tooltip_color};
+            color: {theme['tooltip_color']};
         }}
     """
 
