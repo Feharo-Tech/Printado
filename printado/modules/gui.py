@@ -17,6 +17,7 @@ from printado.core.utils import delete_temp_screenshot
 from printado.core.toolbar import is_background_dark, update_button_styles, setup_toolbar_buttons, set_active_tool
 from printado.modules.upload_dialog import UploadDialog
 from printado.modules.update_checker import check_for_update
+from printado.core.event_handler import handle_mouse_press, handle_mouse_release
 
 
 class ScreenshotTool(QMainWindow):
@@ -282,89 +283,10 @@ class ScreenshotTool(QMainWindow):
         self.color_button.setIcon(QIcon(pixmap))
     
     def mousePressEvent(self, event):
-        if self.rectangle_mode and self.screenshot is not None:
-            adjusted_x = event.x() - self.image_offset_x
-            adjusted_y = event.y() - self.image_offset_y
-
-            adjusted_x = max(0, min(adjusted_x, self.new_width))
-            adjusted_y = max(0, min(adjusted_y, self.new_height))
-
-            self.rectangle_start = (adjusted_x, adjusted_y)
-
-
-        if self.line_mode and self.screenshot is not None:
-            adjusted_x = event.x() - self.image_offset_x
-            adjusted_y = event.y() - self.image_offset_y
-
-            adjusted_x = max(0, min(adjusted_x, self.new_width))
-            adjusted_y = max(0, min(adjusted_y, self.new_height))
-
-            self.line_start = (adjusted_x, adjusted_y)
-
-
-        if self.arrow_mode and self.screenshot is not None:
-            adjusted_x = event.x() - self.image_offset_x
-            adjusted_y = event.y() - self.image_offset_y
-
-            adjusted_x = max(0, min(adjusted_x, self.new_width))
-            adjusted_y = max(0, min(adjusted_y, self.new_height))
-
-            self.arrow_start = (adjusted_x, adjusted_y)
-
-
-        if self.text_mode and self.screenshot is not None:
-            if self.new_width == 0 or self.new_height == 0:
-                return
-
-            adjusted_x = event.x() - self.image_offset_x
-            adjusted_y = event.y() - self.image_offset_y
-
-            adjusted_x = max(0, min(adjusted_x, self.new_width))
-            adjusted_y = max(0, min(adjusted_y, self.new_height))
-
-            self.text_position = (adjusted_x, adjusted_y)
-
-            self.show_text_input()
+        handle_mouse_press(self, event)
 
     def mouseReleaseEvent(self, event):
-        if self.rectangle_mode and self.screenshot is not None and self.rectangle_start:
-            adjusted_x = event.x() - self.image_offset_x
-            adjusted_y = event.y() - self.image_offset_y
-
-            adjusted_x = max(0, min(adjusted_x, self.new_width))
-            adjusted_y = max(0, min(adjusted_y, self.new_height))
-
-            self.rectangle_end = (adjusted_x, adjusted_y)
-
-            self.add_rectangle_to_screenshot()
-            self.rectangle_start = None
-            self.rectangle_end = None
-
-        if self.line_mode and self.screenshot is not None and self.line_start:
-            adjusted_x = event.x() - self.image_offset_x
-            adjusted_y = event.y() - self.image_offset_y
-
-            adjusted_x = max(0, min(adjusted_x, self.new_width))
-            adjusted_y = max(0, min(adjusted_y, self.new_height))
-
-            self.line_end = (adjusted_x, adjusted_y)
-
-            self.add_line_to_screenshot()
-            self.line_start = None
-            self.line_end = None
-
-        if self.arrow_mode and self.screenshot is not None and self.arrow_start:
-            adjusted_x = event.x() - self.image_offset_x
-            adjusted_y = event.y() - self.image_offset_y
-
-            adjusted_x = max(0, min(adjusted_x, self.new_width))
-            adjusted_y = max(0, min(adjusted_y, self.new_height))
-
-            self.arrow_end = (adjusted_x, adjusted_y)
-
-            self.add_arrow_to_screenshot()
-            self.arrow_start = None
-            self.arrow_end = None
+        handle_mouse_release(self, event)
     
     def show_text_input(self):
         if self.text_edit is not None:
