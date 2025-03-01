@@ -429,24 +429,3 @@ class ScreenshotTool(QMainWindow):
                 delete_temp_screenshot()
                 QApplication.quit()
 
-    def notify_update():
-        latest_version, download_url, changelog = check_for_update()
-        if latest_version:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Information)
-            msg.setWindowTitle("Atualização Disponível!")
-            
-            changelog_text = "\n".join(f"• {item}" for item in changelog) if changelog else "Nenhuma informação disponível."
-
-            msg.setText(
-                f"Uma nova versão do Printado está disponível: {latest_version}\n\n"
-                f"🆕 Novidades:\n{changelog_text}\n\n"
-                f"📥 Deseja baixar agora?"
-            )
-
-            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            
-            response = msg.exec_()
-            if response == QMessageBox.Yes:
-                import webbrowser
-                webbrowser.open(download_url)
