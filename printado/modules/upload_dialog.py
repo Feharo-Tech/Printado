@@ -3,9 +3,9 @@ from PyQt5.QtCore import Qt
 import webbrowser
 import pyperclip
 import qtawesome as qta
-from .upload import UploadThread
-from .toolbar import is_background_dark
-from .utils import delete_temp_screenshot
+from modules.upload import UploadThread
+from core.toolbar import is_background_dark
+from core.utils import delete_temp_screenshot
 
 class UploadDialog(QDialog):
     def __init__(self, parent=None):

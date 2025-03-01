@@ -1,12 +1,7 @@
 import os
 import requests
 from PyQt5.QtCore import QThread, pyqtSignal
-from dotenv import load_dotenv
-
-load_dotenv()
-
-UPLOAD_URL = os.getenv("UPLOAD_URL")
-API_KEY = os.getenv("API_KEY")
+from config import Config
 
 class UploadThread(QThread):
     upload_finished = pyqtSignal(str)
@@ -19,8 +14,8 @@ class UploadThread(QThread):
 
         try:
             with open(self.filepath, "rb") as file:
-                headers = {"X-API-KEY": API_KEY}
-                response = requests.post(UPLOAD_URL, files={"image": file}, headers=headers, timeout=10)
+                headers = {"X-API-KEY": Config.API_KEY}
+                response = requests.post(Config.UPLOAD_URL, files={"image": file}, headers=headers, timeout=10)
 
             status_code = response.status_code
             response_text = response.text

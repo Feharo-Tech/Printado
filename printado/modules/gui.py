@@ -10,13 +10,13 @@ from PyQt5.QtGui import QPixmap, QIcon, QColor, QCursor
 from PyQt5.QtCore import Qt
 
 from PIL import ImageGrab, ImageDraw, ImageFont, ImageFilter
-from .selection_window import SelectionWindow
-from .text_format import TextFormat
-from .blur_background import BlurBackground
-from .utils import delete_temp_screenshot
-from .toolbar import is_background_dark, update_button_styles, setup_toolbar_buttons, set_active_tool
-from .upload_dialog import UploadDialog
-from .update_checker import check_for_update
+from core.selection_window import SelectionWindow
+from modules.text_format import TextFormat
+from core.blur_background import BlurBackground
+from core.utils import delete_temp_screenshot
+from core.toolbar import is_background_dark, update_button_styles, setup_toolbar_buttons, set_active_tool
+from modules.upload_dialog import UploadDialog
+from modules.update_checker import check_for_update
 
 
 class ScreenshotTool(QMainWindow):
