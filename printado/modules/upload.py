@@ -1,7 +1,7 @@
 import os
 import requests
 from PyQt5.QtCore import QThread, pyqtSignal
-from config import Config
+from printado.config import Config
 
 class UploadThread(QThread):
     upload_finished = pyqtSignal(str)

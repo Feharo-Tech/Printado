@@ -10,13 +10,13 @@ from PyQt5.QtGui import QPixmap, QIcon, QColor, QCursor
 from PyQt5.QtCore import Qt
 
 from PIL import ImageGrab, ImageDraw, ImageFont, ImageFilter
-from core.selection_window import SelectionWindow
-from modules.text_format import TextFormat
-from core.blur_background import BlurBackground
-from core.utils import delete_temp_screenshot
-from core.toolbar import is_background_dark, update_button_styles, setup_toolbar_buttons, set_active_tool
-from modules.upload_dialog import UploadDialog
-from modules.update_checker import check_for_update
+from printado.core.selection_window import SelectionWindow
+from printado.modules.text_format import TextFormat
+from printado.core.blur_background import BlurBackground
+from printado.core.utils import delete_temp_screenshot
+from printado.core.toolbar import is_background_dark, update_button_styles, setup_toolbar_buttons, set_active_tool
+from printado.modules.upload_dialog import UploadDialog
+from printado.modules.update_checker import check_for_update
 
 
 class ScreenshotTool(QMainWindow):

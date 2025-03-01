@@ -6,3 +6,5 @@ mss
 pynput
 pyperclip
 python-dotenv
+pytest
+pytest-qt
