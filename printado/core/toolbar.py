@@ -13,7 +13,7 @@ def is_background_dark(image):
 def set_active_tool(parent, tool_name):
 
     tools = {
-        "enable_text_mode": "text_mode",
+        "add_text": "text_mode",
         "select_font": "font_mode",
         "select_color": "color_mode",
         "add_arrow": "arrow_mode",
@@ -100,13 +100,13 @@ def setup_toolbar_buttons(parent):
     buttons = {}
 
     button_data = {
-        "enable_text_mode": ("fa5s.i-cursor", lambda: set_active_tool(parent, "enable_text_mode"), "Modo Texto"),
-        "select_font": ("fa5s.font", parent.select_font, "Selecionar Fonte"),
-        "select_color": (None, parent.select_color, "Selecionar Cor"),
-        "add_arrow": ("fa5s.long-arrow-alt-right", lambda: set_active_tool(parent, "add_arrow"), "Adicionar Seta"),
-        "add_line": ("fa5s.minus", lambda: set_active_tool(parent, "add_line"), "Adicionar Linha"),
-        "add_rectangle": ("fa5s.square", lambda: set_active_tool(parent, "add_rectangle"), "Adicionar Retângulo"),
-        "adjust_size": ("fa5s.arrows-alt-h", parent.open_size_slider, "Ajustar Tamanho/Espessura"),
+        "enable_text_mode": ("fa5s.i-cursor", parent.enable_text_mode, "Modo Texto"),
+        "select_font": ("fa5s.font", parent.enable_font_selection, "Selecionar Fonte"),
+        "select_color": (None, parent.enable_color_selection, "Selecionar Cor"),
+        "add_arrow": ("fa5s.long-arrow-alt-right", parent.enable_arrow_mode, "Adicionar Seta"),
+        "add_line": ("fa5s.minus", parent.enable_line_mode, "Adicionar Linha"),
+        "add_rectangle": ("fa5s.square", parent.enable_rectangle_mode, "Adicionar Retângulo"),
+        "adjust_size": ("fa5s.arrows-alt-h", parent.enable_size_adjustment, "Ajustar Tamanho/Espessura"),
         "undo_last_action": ("fa5s.undo", parent.undo_last_action, "Desfazer"),
         "upload_screenshot": ("fa5s.cloud-upload-alt", parent.upload_screenshot, "Fazer Upload da Captura"),
         "save_screenshot": ("fa5s.save", parent.save_screenshot, "Salvar Captura"),

@@ -18,6 +18,7 @@ from printado.core.toolbar import is_background_dark, update_button_styles, setu
 from printado.modules.upload_dialog import UploadDialog
 from printado.modules.update_checker import check_for_update
 from printado.core.event_handler import handle_mouse_press, handle_mouse_release
+from printado.core.tool_manager import enable_tool
 
 
 class ScreenshotTool(QMainWindow):
@@ -248,13 +249,10 @@ class ScreenshotTool(QMainWindow):
             self.label.adjustSize()
     
     def enable_text_mode(self):
-        set_active_tool(self, "enable_text_mode")
-        if self.screenshot is None:
-            return  
-        self.text_mode = True
+        enable_tool(self, "add_text")
 
-    def select_font(self):
-        set_active_tool(self, "select_font")
+    def enable_font_selection(self):
+        enable_tool(self, "select_font")
         self.setAttribute(Qt.WA_TranslucentBackground, False)
         self.setStyleSheet("")
 
@@ -269,8 +267,8 @@ class ScreenshotTool(QMainWindow):
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setStyleSheet("background: transparent;")
     
-    def select_color(self):
-        set_active_tool(self, "select_color")
+    def enable_color_selection(self):
+        enable_tool(self, "select_color")
         color = QColorDialog.getColor()
         if color.isValid():
             self.text_format.set_color(color.name()) 
@@ -331,12 +329,7 @@ class ScreenshotTool(QMainWindow):
             self.text_edit = None
 
     def enable_arrow_mode(self):
-        set_active_tool(self, "add_arrow")
-        self.arrow_mode = not self.arrow_mode
-        if self.arrow_mode:
-            self.setCursor(QCursor(Qt.CrossCursor))
-        else:
-            self.setCursor(QCursor(Qt.ArrowCursor))
+        enable_tool(self, "add_arrow")
     
     def add_arrow_to_screenshot(self):
         if self.screenshot and self.arrow_start and self.arrow_end:
@@ -354,8 +347,8 @@ class ScreenshotTool(QMainWindow):
             self.arrow_end = None
 
 
-    def open_size_slider(self):
-        set_active_tool(self, "adjust_size") 
+    def enable_size_adjustment(self):
+        enable_tool(self, "adjust_size")
         if not hasattr(self, 'size_slider'):
             self.size_slider = QSlider(Qt.Horizontal, self)
             self.size_slider.setMinimum(1)
@@ -369,8 +362,8 @@ class ScreenshotTool(QMainWindow):
     def update_size(self, value):
         self.tool_size = value
 
-    def add_line_to_screenshot(self):
-        set_active_tool(self, "add_line")
+    def enable_line_mode(self):
+        enable_tool(self, "add_line")
         if self.screenshot and self.line_start and self.line_end:
             self.history.append((self.screenshot.copy(), list(self.texts)))
 
@@ -385,8 +378,8 @@ class ScreenshotTool(QMainWindow):
             self.line_end = None
 
 
-    def add_rectangle_to_screenshot(self):
-        set_active_tool(self, "add_rectangle")
+    def enable_rectangle_mode(self):
+        enable_tool(self, "add_rectangle")
         if self.screenshot and self.rectangle_start and self.rectangle_end:
 
             self.history.append((self.screenshot.copy(), list(self.texts)))
@@ -421,7 +414,7 @@ class ScreenshotTool(QMainWindow):
             self.upload_dialog.exec_()
             
     def save_screenshot(self):
-        set_active_tool(self, "save_screenshot")
+        enable_tool(self, "save_screenshot")
         if self.original_screenshot:
             filename, _ = QFileDialog.getSaveFileName(None, "Salvar Imagem", "screenshot.png", "PNG Files (*.png);;JPEG Files (*.jpg)")
             if filename:
