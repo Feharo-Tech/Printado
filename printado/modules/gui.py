@@ -19,6 +19,7 @@ from printado.modules.upload_dialog import UploadDialog
 from printado.modules.update_checker import check_for_update
 from printado.core.event_handler import handle_mouse_press, handle_mouse_release
 from printado.core.tool_manager import enable_tool
+from printado.core.screenshot_manager import process_screenshot
 
 
 class ScreenshotTool(QMainWindow):
@@ -81,61 +82,7 @@ class ScreenshotTool(QMainWindow):
         QApplication.setOverrideCursor(QCursor(Qt.CrossCursor))
         
     def process_screenshot(self, screenshot):
-        check_for_update(self)
-        if not self.blur_background:
-            self.blur_background = BlurBackground(self)
-            self.blur_background.show_blur()
-            self.blur_background.lower()
-
-        QApplication.restoreOverrideCursor()
-        self.screenshot = screenshot
-        self.original_screenshot = screenshot.copy()
-
-        min_width, min_height = 400, 300
-        max_width, max_height = 1024, 576
-
-        self.original_width, self.original_height = self.screenshot.size
-        aspect_ratio = self.original_width / self.original_height
-
-        if self.original_width > max_width or self.original_height > max_height:
-            if aspect_ratio > (max_width / max_height):
-                self.new_width = max_width
-                self.new_height = int(max_width / aspect_ratio)
-            else:
-                self.new_height = max_height
-                self.new_width = int(max_height * aspect_ratio)
-            
-            self.screenshot = self.screenshot.resize((self.new_width, self.new_height))
-
-        else:
-            self.new_width, self.new_height = self.original_width, self.original_height
-
-        self.display_width = max(self.new_width, min_width)
-        self.display_height = max(self.new_height, min_height)
-
-        self.image_offset_x = (self.display_width - self.new_width) // 2
-        self.image_offset_y = (self.display_height - self.new_height) // 2
-
-        self.screenshot.save("temp_screenshot.png")
-
-        pixmap = QPixmap("temp_screenshot.png")
-        self.label.setPixmap(pixmap)
-
-        self.label.setFixedSize(self.display_width, self.display_height)
-        self.label.setAlignment(Qt.AlignCenter)
-        self.label.setStyleSheet("background-color: transparent;")
-
-        screen_geometry = QApplication.primaryScreen().geometry()
-        center_x = (screen_geometry.width() - max_width) // 2
-        center_y = (screen_geometry.height() - max_height) // 2
-        self.move(center_x, center_y)
-
-        is_dark = is_background_dark(self.original_screenshot)
-        update_button_styles(self.toolbar_widget, is_dark, self.buttons)
-
-        self.show()
-        self.raise_()
-        self.activateWindow()
+        process_screenshot(self, screenshot)
 
     def hex_to_rgb(self, hex_color):
         hex_color = hex_color.lstrip('#')
