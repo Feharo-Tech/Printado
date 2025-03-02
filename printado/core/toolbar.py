@@ -100,7 +100,7 @@ def setup_toolbar_buttons(parent):
     buttons = {}
 
     button_data = {
-        "enable_text_mode": ("fa5s.i-cursor", parent.enable_text_mode, "Modo Texto"),
+        "enable_text_mode": ("fa5s.i-cursor", parent.enable_text_mode, "Adicionar Texto"),
         "select_font": ("fa5s.font", parent.enable_font_selection, "Selecionar Fonte"),
         "select_color": (None, parent.enable_color_selection, "Selecionar Cor"),
         "add_arrow": ("fa5s.long-arrow-alt-right", parent.enable_arrow_mode, "Adicionar Seta"),
