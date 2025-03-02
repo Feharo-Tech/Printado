@@ -1,22 +1,22 @@
 import os
 import re
-import time
-import math
-import requests
-import qtawesome as qta
-
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QHBoxLayout, QFileDialog, QLineEdit, QColorDialog, QApplication, QFontDialog, QSlider, QMessageBox
+from PyQt5.QtWidgets import (
+    QMainWindow, QLabel, QVBoxLayout, QWidget, QHBoxLayout, QFileDialog,
+    QLineEdit, QColorDialog, QApplication, QFontDialog, QSlider
+)
 from PyQt5.QtGui import QPixmap, QIcon, QColor, QCursor
 from PyQt5.QtCore import Qt
 
-from PIL import ImageGrab, ImageDraw, ImageFont, ImageFilter
 from printado.core.selection_window import SelectionWindow
 from printado.modules.text_format import TextFormat
-from printado.core.blur_background import BlurBackground
 from printado.core.utils import delete_temp_screenshot
-from printado.core.toolbar import is_background_dark, update_button_styles, setup_toolbar_buttons, set_active_tool
+from printado.core.toolbar import setup_toolbar_buttons
 from printado.modules.upload_dialog import UploadDialog
 from printado.modules.update_checker import check_for_update
+from printado.core.event_handler import handle_mouse_press, handle_mouse_release
+from printado.core.tool_manager import enable_tool
+from printado.core.screenshot_manager import process_screenshot
+from printado.core.screenshot_editor import update_screenshot
 
 
 class ScreenshotTool(QMainWindow):
@@ -79,181 +79,16 @@ class ScreenshotTool(QMainWindow):
         QApplication.setOverrideCursor(QCursor(Qt.CrossCursor))
         
     def process_screenshot(self, screenshot):
-        check_for_update(self)
-        if not self.blur_background:
-            self.blur_background = BlurBackground(self)
-            self.blur_background.show_blur()
-            self.blur_background.lower()
-
-        QApplication.restoreOverrideCursor()
-        self.screenshot = screenshot
-        self.original_screenshot = screenshot.copy()
-
-        min_width, min_height = 400, 300
-        max_width, max_height = 1024, 576
-
-        self.original_width, self.original_height = self.screenshot.size
-        aspect_ratio = self.original_width / self.original_height
-
-        if self.original_width > max_width or self.original_height > max_height:
-            if aspect_ratio > (max_width / max_height):
-                self.new_width = max_width
-                self.new_height = int(max_width / aspect_ratio)
-            else:
-                self.new_height = max_height
-                self.new_width = int(max_height * aspect_ratio)
-            
-            self.screenshot = self.screenshot.resize((self.new_width, self.new_height))
-
-        else:
-            self.new_width, self.new_height = self.original_width, self.original_height
-
-        self.display_width = max(self.new_width, min_width)
-        self.display_height = max(self.new_height, min_height)
-
-        self.image_offset_x = (self.display_width - self.new_width) // 2
-        self.image_offset_y = (self.display_height - self.new_height) // 2
-
-        self.screenshot.save("temp_screenshot.png")
-
-        pixmap = QPixmap("temp_screenshot.png")
-        self.label.setPixmap(pixmap)
-
-        self.label.setFixedSize(self.display_width, self.display_height)
-        self.label.setAlignment(Qt.AlignCenter)
-        self.label.setStyleSheet("background-color: transparent;")
-
-        screen_geometry = QApplication.primaryScreen().geometry()
-        center_x = (screen_geometry.width() - max_width) // 2
-        center_y = (screen_geometry.height() - max_height) // 2
-        self.move(center_x, center_y)
-
-        is_dark = is_background_dark(self.original_screenshot)
-        update_button_styles(self.toolbar_widget, is_dark, self.buttons)
-
-        self.show()
-        self.raise_()
-        self.activateWindow()
-
-    def hex_to_rgb(self, hex_color):
-        hex_color = hex_color.lstrip('#')
-        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+        process_screenshot(self, screenshot)
     
     def update_screenshot(self):
-        if self.screenshot:
-
-            self.screenshot = self.original_screenshot.copy()
-            edited_screenshot = self.screenshot.copy()
-            draw = ImageDraw.Draw(edited_screenshot)
-
-            scale_x = self.original_width / self.new_width
-            scale_y = self.original_height / self.new_height
-
-            for text_data in self.texts:
-                if text_data[0] == "arrow":
-                    start_x, start_y, end_x, end_y = text_data[1]
-                    tool_size = text_data[2]
-                    color = text_data[3]
-                    
-                    start_x = int(start_x * scale_x)
-                    start_y = int(start_y * scale_y)
-                    end_x = int(end_x * scale_x)
-                    end_y = int(end_y * scale_y)
-
-                    draw.line((start_x, start_y, end_x, end_y), fill=color, width=max(2, tool_size))
-
-                    angle = math.atan2(end_y - start_y, end_x - start_x)
-
-                    arrow_head_size = max(8, tool_size * 4)
-
-                    line_end_x = end_x - (arrow_head_size * 0.6) * math.cos(angle)
-                    line_end_y = end_y - (arrow_head_size * 0.6) * math.sin(angle)
-
-                    left_x = end_x - arrow_head_size * math.cos(angle - math.pi / 4)
-                    left_y = end_y - arrow_head_size * math.sin(angle - math.pi / 4)
-                    right_x = end_x - arrow_head_size * math.cos(angle + math.pi / 4)
-                    right_y = end_y - arrow_head_size * math.sin(angle + math.pi / 4)
-
-                    tip_x = end_x + (arrow_head_size // 6) * math.cos(angle)
-                    tip_y = end_y + (arrow_head_size // 6) * math.sin(angle)
-
-                    draw.polygon([(tip_x, tip_y), (left_x, left_y), (right_x, right_y)], fill=color)
-
-                elif text_data[0] == "line":
-                    start_x, start_y, end_x, end_y = text_data[1]
-                    line_size = text_data[2]
-                    color = text_data[3]
-
-                    start_x = int(start_x * scale_x)
-                    start_y = int(start_y * scale_y)
-                    end_x = int(end_x * scale_x)
-                    end_y = int(end_y * scale_y)
-
-                    draw.line((start_x, start_y, end_x, end_y), fill=color, width=max(2, line_size))
-
-                elif text_data[0] == "rectangle":
-                    start_x, start_y, end_x, end_y = text_data[1]
-                    rect_size = text_data[2]
-                    color = text_data[3]
-
-                    start_x = int(start_x * scale_x)
-                    start_y = int(start_y * scale_y)
-                    end_x = int(end_x * scale_x)
-                    end_y = int(end_y * scale_y)
-
-                    draw.rectangle([start_x, start_y, end_x, end_y], outline=color, width=rect_size)
-
-                else:
-                    text, pos, font, color = text_data
-                    if isinstance(color, QColor):  
-                        color = color.name()
-
-                    if isinstance(color, str) and re.match(r"^#[0-9A-Fa-f]{6}$", color):
-                        color = self.hex_to_rgb(color)
-
-                    adjusted_pos = (int(pos[0] * scale_x), int(pos[1] * scale_y))
-
-                    font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-                    bold_font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-                    italic_font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Oblique.ttf"
-
-                    try:
-                        if font.bold() and font.italic():
-                            pil_font = ImageFont.truetype(bold_font_path, font.pointSize() * scale_x)
-                        elif font.bold():
-                            pil_font = ImageFont.truetype(bold_font_path, font.pointSize() * scale_x)
-                        elif font.italic():
-                            pil_font = ImageFont.truetype(italic_font_path, font.pointSize() * scale_x)
-                        else:
-                            pil_font = ImageFont.truetype(font_path, font.pointSize() * scale_x)
-                    except IOError:
-                        pil_font = ImageFont.load_default()
-
-                    draw.text(pos, text, font=pil_font, fill=color)
-
-                    if font.underline():
-                        underline_y = pos[1] + font.pointSize() + 2
-                        draw.line((pos[0], underline_y, pos[0] + len(text) * font.pointSize() // 2, underline_y), fill=color, width=2)
-
-
-            edited_screenshot.save("temp_screenshot.png")
-            self.original_screenshot = edited_screenshot.copy()
-            self.screenshot = edited_screenshot
-
-            pixmap = QPixmap("temp_screenshot.png")
-            scaled_pixmap = pixmap.scaled(self.new_width, self.new_height, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-
-            self.label.setPixmap(scaled_pixmap)
-            self.label.adjustSize()
+        update_screenshot(self)
     
     def enable_text_mode(self):
-        set_active_tool(self, "enable_text_mode")
-        if self.screenshot is None:
-            return  
-        self.text_mode = True
+        enable_tool(self, "add_text")
 
-    def select_font(self):
-        set_active_tool(self, "select_font")
+    def enable_font_selection(self):
+        enable_tool(self, "select_font")
         self.setAttribute(Qt.WA_TranslucentBackground, False)
         self.setStyleSheet("")
 
@@ -268,8 +103,8 @@ class ScreenshotTool(QMainWindow):
         self.setAttribute(Qt.WA_TranslucentBackground, True)
         self.setStyleSheet("background: transparent;")
     
-    def select_color(self):
-        set_active_tool(self, "select_color")
+    def enable_color_selection(self):
+        enable_tool(self, "select_color")
         color = QColorDialog.getColor()
         if color.isValid():
             self.text_format.set_color(color.name()) 
@@ -282,89 +117,10 @@ class ScreenshotTool(QMainWindow):
         self.color_button.setIcon(QIcon(pixmap))
     
     def mousePressEvent(self, event):
-        if self.rectangle_mode and self.screenshot is not None:
-            adjusted_x = event.x() - self.image_offset_x
-            adjusted_y = event.y() - self.image_offset_y
-
-            adjusted_x = max(0, min(adjusted_x, self.new_width))
-            adjusted_y = max(0, min(adjusted_y, self.new_height))
-
-            self.rectangle_start = (adjusted_x, adjusted_y)
-
-
-        if self.line_mode and self.screenshot is not None:
-            adjusted_x = event.x() - self.image_offset_x
-            adjusted_y = event.y() - self.image_offset_y
-
-            adjusted_x = max(0, min(adjusted_x, self.new_width))
-            adjusted_y = max(0, min(adjusted_y, self.new_height))
-
-            self.line_start = (adjusted_x, adjusted_y)
-
-
-        if self.arrow_mode and self.screenshot is not None:
-            adjusted_x = event.x() - self.image_offset_x
-            adjusted_y = event.y() - self.image_offset_y
-
-            adjusted_x = max(0, min(adjusted_x, self.new_width))
-            adjusted_y = max(0, min(adjusted_y, self.new_height))
-
-            self.arrow_start = (adjusted_x, adjusted_y)
-
-
-        if self.text_mode and self.screenshot is not None:
-            if self.new_width == 0 or self.new_height == 0:
-                return
-
-            adjusted_x = event.x() - self.image_offset_x
-            adjusted_y = event.y() - self.image_offset_y
-
-            adjusted_x = max(0, min(adjusted_x, self.new_width))
-            adjusted_y = max(0, min(adjusted_y, self.new_height))
-
-            self.text_position = (adjusted_x, adjusted_y)
-
-            self.show_text_input()
+        handle_mouse_press(self, event)
 
     def mouseReleaseEvent(self, event):
-        if self.rectangle_mode and self.screenshot is not None and self.rectangle_start:
-            adjusted_x = event.x() - self.image_offset_x
-            adjusted_y = event.y() - self.image_offset_y
-
-            adjusted_x = max(0, min(adjusted_x, self.new_width))
-            adjusted_y = max(0, min(adjusted_y, self.new_height))
-
-            self.rectangle_end = (adjusted_x, adjusted_y)
-
-            self.add_rectangle_to_screenshot()
-            self.rectangle_start = None
-            self.rectangle_end = None
-
-        if self.line_mode and self.screenshot is not None and self.line_start:
-            adjusted_x = event.x() - self.image_offset_x
-            adjusted_y = event.y() - self.image_offset_y
-
-            adjusted_x = max(0, min(adjusted_x, self.new_width))
-            adjusted_y = max(0, min(adjusted_y, self.new_height))
-
-            self.line_end = (adjusted_x, adjusted_y)
-
-            self.add_line_to_screenshot()
-            self.line_start = None
-            self.line_end = None
-
-        if self.arrow_mode and self.screenshot is not None and self.arrow_start:
-            adjusted_x = event.x() - self.image_offset_x
-            adjusted_y = event.y() - self.image_offset_y
-
-            adjusted_x = max(0, min(adjusted_x, self.new_width))
-            adjusted_y = max(0, min(adjusted_y, self.new_height))
-
-            self.arrow_end = (adjusted_x, adjusted_y)
-
-            self.add_arrow_to_screenshot()
-            self.arrow_start = None
-            self.arrow_end = None
+        handle_mouse_release(self, event)
     
     def show_text_input(self):
         if self.text_edit is not None:
@@ -379,7 +135,7 @@ class ScreenshotTool(QMainWindow):
 
 
         self.text_edit.setGeometry(final_x, final_y, 200, 30)
-        self.text_edit.setPlaceholderText("Digite seu texto aqui...")
+        self.text_edit.setPlaceholderText("Digite o texto aqui...")
 
         self.text_edit.returnPressed.connect(self.add_text_to_screenshot)
         self.text_edit.show()
@@ -409,12 +165,7 @@ class ScreenshotTool(QMainWindow):
             self.text_edit = None
 
     def enable_arrow_mode(self):
-        set_active_tool(self, "add_arrow")
-        self.arrow_mode = not self.arrow_mode
-        if self.arrow_mode:
-            self.setCursor(QCursor(Qt.CrossCursor))
-        else:
-            self.setCursor(QCursor(Qt.ArrowCursor))
+        enable_tool(self, "add_arrow")
     
     def add_arrow_to_screenshot(self):
         if self.screenshot and self.arrow_start and self.arrow_end:
@@ -432,8 +183,8 @@ class ScreenshotTool(QMainWindow):
             self.arrow_end = None
 
 
-    def open_size_slider(self):
-        set_active_tool(self, "adjust_size") 
+    def enable_size_adjustment(self):
+        enable_tool(self, "adjust_size")
         if not hasattr(self, 'size_slider'):
             self.size_slider = QSlider(Qt.Horizontal, self)
             self.size_slider.setMinimum(1)
@@ -447,8 +198,8 @@ class ScreenshotTool(QMainWindow):
     def update_size(self, value):
         self.tool_size = value
 
-    def add_line_to_screenshot(self):
-        set_active_tool(self, "add_line")
+    def enable_line_mode(self):
+        enable_tool(self, "add_line")
         if self.screenshot and self.line_start and self.line_end:
             self.history.append((self.screenshot.copy(), list(self.texts)))
 
@@ -463,8 +214,8 @@ class ScreenshotTool(QMainWindow):
             self.line_end = None
 
 
-    def add_rectangle_to_screenshot(self):
-        set_active_tool(self, "add_rectangle")
+    def enable_rectangle_mode(self):
+        enable_tool(self, "add_rectangle")
         if self.screenshot and self.rectangle_start and self.rectangle_end:
 
             self.history.append((self.screenshot.copy(), list(self.texts)))
@@ -499,7 +250,7 @@ class ScreenshotTool(QMainWindow):
             self.upload_dialog.exec_()
             
     def save_screenshot(self):
-        set_active_tool(self, "save_screenshot")
+        enable_tool(self, "save_screenshot")
         if self.original_screenshot:
             filename, _ = QFileDialog.getSaveFileName(None, "Salvar Imagem", "screenshot.png", "PNG Files (*.png);;JPEG Files (*.jpg)")
             if filename:
@@ -507,24 +258,3 @@ class ScreenshotTool(QMainWindow):
                 delete_temp_screenshot()
                 QApplication.quit()
 
-    def notify_update():
-        latest_version, download_url, changelog = check_for_update()
-        if latest_version:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Information)
-            msg.setWindowTitle("Atualização Disponível!")
-            
-            changelog_text = "\n".join(f"• {item}" for item in changelog) if changelog else "Nenhuma informação disponível."
-
-            msg.setText(
-                f"Uma nova versão do Printado está disponível: {latest_version}\n\n"
-                f"🆕 Novidades:\n{changelog_text}\n\n"
-                f"📥 Deseja baixar agora?"
-            )
-
-            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            
-            response = msg.exec_()
-            if response == QMessageBox.Yes:
-                import webbrowser
-                webbrowser.open(download_url)
