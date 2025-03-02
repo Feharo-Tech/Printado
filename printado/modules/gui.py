@@ -1,7 +1,6 @@
 import os
 import re
 import time
-import math
 import requests
 import qtawesome as qta
 
@@ -20,6 +19,7 @@ from printado.modules.update_checker import check_for_update
 from printado.core.event_handler import handle_mouse_press, handle_mouse_release
 from printado.core.tool_manager import enable_tool
 from printado.core.screenshot_manager import process_screenshot
+from printado.core.screenshot_editor import update_screenshot
 
 
 class ScreenshotTool(QMainWindow):
@@ -83,117 +83,9 @@ class ScreenshotTool(QMainWindow):
         
     def process_screenshot(self, screenshot):
         process_screenshot(self, screenshot)
-
-    def hex_to_rgb(self, hex_color):
-        hex_color = hex_color.lstrip('#')
-        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
     
     def update_screenshot(self):
-        if self.screenshot:
-
-            self.screenshot = self.original_screenshot.copy()
-            edited_screenshot = self.screenshot.copy()
-            draw = ImageDraw.Draw(edited_screenshot)
-
-            scale_x = self.original_width / self.new_width
-            scale_y = self.original_height / self.new_height
-
-            for text_data in self.texts:
-                if text_data[0] == "arrow":
-                    start_x, start_y, end_x, end_y = text_data[1]
-                    tool_size = text_data[2]
-                    color = text_data[3]
-                    
-                    start_x = int(start_x * scale_x)
-                    start_y = int(start_y * scale_y)
-                    end_x = int(end_x * scale_x)
-                    end_y = int(end_y * scale_y)
-
-                    draw.line((start_x, start_y, end_x, end_y), fill=color, width=max(2, tool_size))
-
-                    angle = math.atan2(end_y - start_y, end_x - start_x)
-
-                    arrow_head_size = max(8, tool_size * 4)
-
-                    line_end_x = end_x - (arrow_head_size * 0.6) * math.cos(angle)
-                    line_end_y = end_y - (arrow_head_size * 0.6) * math.sin(angle)
-
-                    left_x = end_x - arrow_head_size * math.cos(angle - math.pi / 4)
-                    left_y = end_y - arrow_head_size * math.sin(angle - math.pi / 4)
-                    right_x = end_x - arrow_head_size * math.cos(angle + math.pi / 4)
-                    right_y = end_y - arrow_head_size * math.sin(angle + math.pi / 4)
-
-                    tip_x = end_x + (arrow_head_size // 6) * math.cos(angle)
-                    tip_y = end_y + (arrow_head_size // 6) * math.sin(angle)
-
-                    draw.polygon([(tip_x, tip_y), (left_x, left_y), (right_x, right_y)], fill=color)
-
-                elif text_data[0] == "line":
-                    start_x, start_y, end_x, end_y = text_data[1]
-                    line_size = text_data[2]
-                    color = text_data[3]
-
-                    start_x = int(start_x * scale_x)
-                    start_y = int(start_y * scale_y)
-                    end_x = int(end_x * scale_x)
-                    end_y = int(end_y * scale_y)
-
-                    draw.line((start_x, start_y, end_x, end_y), fill=color, width=max(2, line_size))
-
-                elif text_data[0] == "rectangle":
-                    start_x, start_y, end_x, end_y = text_data[1]
-                    rect_size = text_data[2]
-                    color = text_data[3]
-
-                    start_x = int(start_x * scale_x)
-                    start_y = int(start_y * scale_y)
-                    end_x = int(end_x * scale_x)
-                    end_y = int(end_y * scale_y)
-
-                    draw.rectangle([start_x, start_y, end_x, end_y], outline=color, width=rect_size)
-
-                else:
-                    text, pos, font, color = text_data
-                    if isinstance(color, QColor):  
-                        color = color.name()
-
-                    if isinstance(color, str) and re.match(r"^#[0-9A-Fa-f]{6}$", color):
-                        color = self.hex_to_rgb(color)
-
-                    adjusted_pos = (int(pos[0] * scale_x), int(pos[1] * scale_y))
-
-                    font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-                    bold_font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-                    italic_font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Oblique.ttf"
-
-                    try:
-                        if font.bold() and font.italic():
-                            pil_font = ImageFont.truetype(bold_font_path, font.pointSize() * scale_x)
-                        elif font.bold():
-                            pil_font = ImageFont.truetype(bold_font_path, font.pointSize() * scale_x)
-                        elif font.italic():
-                            pil_font = ImageFont.truetype(italic_font_path, font.pointSize() * scale_x)
-                        else:
-                            pil_font = ImageFont.truetype(font_path, font.pointSize() * scale_x)
-                    except IOError:
-                        pil_font = ImageFont.load_default()
-
-                    draw.text(pos, text, font=pil_font, fill=color)
-
-                    if font.underline():
-                        underline_y = pos[1] + font.pointSize() + 2
-                        draw.line((pos[0], underline_y, pos[0] + len(text) * font.pointSize() // 2, underline_y), fill=color, width=2)
-
-
-            edited_screenshot.save("temp_screenshot.png")
-            self.original_screenshot = edited_screenshot.copy()
-            self.screenshot = edited_screenshot
-
-            pixmap = QPixmap("temp_screenshot.png")
-            scaled_pixmap = pixmap.scaled(self.new_width, self.new_height, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-
-            self.label.setPixmap(scaled_pixmap)
-            self.label.adjustSize()
+        update_screenshot(self)
     
     def enable_text_mode(self):
         enable_tool(self, "add_text")
