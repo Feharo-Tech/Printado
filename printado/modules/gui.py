@@ -1,19 +1,16 @@
 import os
 import re
-import time
-import requests
-import qtawesome as qta
-
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QHBoxLayout, QFileDialog, QLineEdit, QColorDialog, QApplication, QFontDialog, QSlider, QMessageBox
+from PyQt5.QtWidgets import (
+    QMainWindow, QLabel, QVBoxLayout, QWidget, QHBoxLayout, QFileDialog,
+    QLineEdit, QColorDialog, QApplication, QFontDialog, QSlider
+)
 from PyQt5.QtGui import QPixmap, QIcon, QColor, QCursor
 from PyQt5.QtCore import Qt
 
-from PIL import ImageGrab, ImageDraw, ImageFont, ImageFilter
 from printado.core.selection_window import SelectionWindow
 from printado.modules.text_format import TextFormat
-from printado.core.blur_background import BlurBackground
 from printado.core.utils import delete_temp_screenshot
-from printado.core.toolbar import is_background_dark, update_button_styles, setup_toolbar_buttons, set_active_tool
+from printado.core.toolbar import setup_toolbar_buttons
 from printado.modules.upload_dialog import UploadDialog
 from printado.modules.update_checker import check_for_update
 from printado.core.event_handler import handle_mouse_press, handle_mouse_release
@@ -138,7 +135,7 @@ class ScreenshotTool(QMainWindow):
 
 
         self.text_edit.setGeometry(final_x, final_y, 200, 30)
-        self.text_edit.setPlaceholderText("Digite seu texto aqui...")
+        self.text_edit.setPlaceholderText("Digite o texto aqui...")
 
         self.text_edit.returnPressed.connect(self.add_text_to_screenshot)
         self.text_edit.show()
