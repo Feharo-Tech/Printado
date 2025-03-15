@@ -42,7 +42,7 @@ python3 -m venv env
 source env/bin/activate  # Linux/macOS
 env\Scripts\activate    # Windows
 pip install -r requirements.txt
-python3 -m printado.main
+python3 -m printado.hotkey_listener
 ```
 
 ## 🚀 Exemplo de Uso
