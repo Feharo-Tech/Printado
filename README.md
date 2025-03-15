@@ -32,11 +32,6 @@ Veja o **Printado** em ação! 🚀
 - Pip e Virtualenv
 - PyQt5
 
-### Instalação via Pip
-
-```sh
-pip install printado
-```
 
 ### 🏗️ Executar diretamente do código-fonte
 
