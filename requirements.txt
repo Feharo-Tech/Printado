@@ -8,3 +8,4 @@ pyperclip
 python-dotenv
 pytest
 pytest-qt
+requests
