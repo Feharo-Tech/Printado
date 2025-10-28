@@ -32,7 +32,6 @@ Veja o **Printado** em ação! 🚀
 - Pip e Virtualenv
 - PyQt5
 
-
 ### 🏗️ Executar diretamente do código-fonte
 
 ```sh
@@ -42,6 +41,25 @@ python3 -m venv env
 source env/bin/activate  # Linux/macOS
 env\Scripts\activate    # Windows
 pip install -r requirements.txt
+```
+
+**Importante para Linux:**  
+Para evitar problemas de importação do pacote, execute:
+
+```sh
+pip install -e .
+```
+ou, alternativamente, execute:
+
+```sh
+PYTHONPATH=. python3 -m printado.hotkey_listener
+```
+
+> Instalar em modo editável (`pip install -e .`) é a forma mais recomendada para evitar erros de `ModuleNotFoundError: No module named 'printado'`.
+
+Em seguida, para rodar o Printado:
+
+```sh
 python3 -m printado.hotkey_listener
 ```
 
@@ -68,8 +86,6 @@ Aqui estão algumas correções e novas funcionalidades planejadas para as próx
 - 🌍 **Adicionar suporte a novas línguas** com tradução integrada.
 
 💡 Tem sugestões? **Abra uma [issue](https://github.com/Feharo-Tech/printado/issues) no GitHub!**  
-
-
 
 ## 🌟 Contribuição
 

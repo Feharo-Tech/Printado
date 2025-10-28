@@ -9,3 +9,4 @@ src/__pycache__/*
 printado_deb/
 .env
 *.pyc
+printado.egg-info/*
