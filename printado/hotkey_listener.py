@@ -27,9 +27,8 @@ def on_press(key):
     try:
         pressed_keys.add(key) 
 
-        if keyboard.Key.ctrl_l in pressed_keys or keyboard.Key.ctrl_r in pressed_keys:
-            if key == keyboard.Key.print_screen:
-                run_screenshot_tool()
+        if key == keyboard.Key.print_screen:
+            run_screenshot_tool()
 
         if key == keyboard.Key.esc:
             stop_screenshot_tool()

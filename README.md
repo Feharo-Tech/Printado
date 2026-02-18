@@ -65,7 +65,7 @@ python3 -m printado.hotkey_listener
 
 ## 🚀 Exemplo de Uso
 
-1️⃣ **Pressione `Ctrl + PrintScreen`** para iniciar a captura.  
+1️⃣ **Pressione `PrintScreen`** para iniciar a captura.  
 2️⃣ **Selecione a área desejada** da tela.  
 3️⃣ **Adicione textos, setas, linhas e personalize como desejar.**  
 4️⃣ **Clique para salvar ou fazer upload** e obtenha um link compartilhável.  

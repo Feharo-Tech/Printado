@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Printado
+Exec=printado
+Icon=printado
+Comment=Ferramenta de captura personalizada
+Categories=Utility;
+Terminal=false
+StartupNotify=true
