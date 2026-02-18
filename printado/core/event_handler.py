@@ -25,18 +25,18 @@ def handle_mouse_release(self, event):
 
     if self.rectangle_mode and self.rectangle_start:
         self.rectangle_end = (adjusted_x, adjusted_y)
-        self.enable_rectangle_mode()
+        self.commit_rectangle(self.rectangle_start, self.rectangle_end)
         self.rectangle_start = None
         self.rectangle_end = None
 
     elif self.line_mode and self.line_start:
         self.line_end = (adjusted_x, adjusted_y)
-        self.enable_line_mode()
+        self.commit_line(self.line_start, self.line_end)
         self.line_start = None
         self.line_end = None
 
     elif self.arrow_mode and self.arrow_start:
         self.arrow_end = (adjusted_x, adjusted_y)
-        self.add_arrow_to_screenshot()
+        self.commit_arrow(self.arrow_start, self.arrow_end)
         self.arrow_start = None
         self.arrow_end = None

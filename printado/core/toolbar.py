@@ -39,11 +39,30 @@ def set_active_tool(parent, tool_name):
         if hasattr(parent, 'size_slider'):
             parent.size_slider.hide()
 
-    update_button_styles(parent.toolbar_widget, is_background_dark(parent.original_screenshot) if parent.screenshot else True, parent.buttons, tool_name)
+    image = getattr(parent, "rendered_screenshot", None) or getattr(parent, "base_screenshot", None)
+    update_button_styles(
+        parent.toolbar_widget,
+        is_background_dark(image) if image else True,
+        parent.buttons,
+        tool_name,
+    )
 
 
 def update_button_styles(toolbar_widget, is_dark, buttons, active_tool=None):
     theme = get_theme(is_dark)
+
+    tool_to_button_key = {
+        "add_text": "enable_text_mode",
+        "select_font": "select_font",
+        "select_color": "select_color",
+        "add_arrow": "add_arrow",
+        "add_line": "add_line",
+        "add_rectangle": "add_rectangle",
+        "adjust_size": "adjust_size",
+        "upload_screenshot": "upload_screenshot",
+        "save_screenshot": "save_screenshot",
+    }
+    active_button_key = tool_to_button_key.get(active_tool, active_tool)
 
     toolbar_widget.setStyleSheet(
         f"background: rgba({theme['button_bg']}, 0.1); border-radius: 8px; margin-left:3px; padding: 5px;"
@@ -67,7 +86,7 @@ def update_button_styles(toolbar_widget, is_dark, buttons, active_tool=None):
             new_icon = qta.icon(button_icons[key], color=theme['button_color'])
             btn.setIcon(new_icon)
 
-        if key == active_tool:
+        if key == active_button_key:
             btn.setStyleSheet(f"""
                 QPushButton {{
                     background-color: rgba({theme['button_bg']}, 0.4);
@@ -105,7 +124,7 @@ def setup_toolbar_buttons(parent):
         "select_color": (None, parent.enable_color_selection, "Selecionar Cor"),
         "add_arrow": ("fa5s.long-arrow-alt-right", parent.enable_arrow_mode, "Adicionar Seta"),
         "add_line": ("fa5s.minus", parent.enable_line_mode, "Adicionar Linha"),
-        "add_rectangle": ("fa5s.square", parent.enable_rectangle_mode, "Adicionar Retângulo"),
+        "add_rectangle": ("fa5s.border-style", parent.enable_rectangle_mode, "Adicionar Retângulo"),
         "adjust_size": ("fa5s.arrows-alt-h", parent.enable_size_adjustment, "Ajustar Tamanho/Espessura"),
         "undo_last_action": ("fa5s.undo", parent.undo_last_action, "Desfazer"),
         "upload_screenshot": ("fa5s.cloud-upload-alt", parent.upload_screenshot, "Fazer Upload da Captura"),
@@ -132,7 +151,8 @@ def setup_toolbar_buttons(parent):
 
 
 def apply_tooltip_style(parent):
-    is_dark = is_background_dark(parent.original_screenshot) if parent.screenshot else True
+    image = getattr(parent, "rendered_screenshot", None) or getattr(parent, "base_screenshot", None)
+    is_dark = is_background_dark(image) if image else True
     theme = get_theme(is_dark)
    
     tooltip_style = f"""

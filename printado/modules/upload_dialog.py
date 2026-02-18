@@ -15,7 +15,8 @@ class UploadDialog(QDialog):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Popup)
         self.setAttribute(Qt.WA_TranslucentBackground)
 
-        is_dark = is_background_dark(parent.original_screenshot) if parent.screenshot else True
+        image = getattr(parent, "rendered_screenshot", None) or getattr(parent, "base_screenshot", None)
+        is_dark = is_background_dark(image) if image else True
         theme = get_theme(is_dark)
 
         self.layout = QVBoxLayout()
@@ -74,13 +75,13 @@ class UploadDialog(QDialog):
 
         self.setFixedSize(320, 100)
 
-    def start_upload(self, filepath):
+    def start_upload(self, filepath=None, image_bytes=None, filename="screenshot.png"):
         self.loading_label.setText("🔄 Enviando a imagem, aguarde...")
         self.loading_label.show()
         self.copy_button.hide()
         self.open_button.hide()
 
-        self.upload_thread = UploadThread(filepath)
+        self.upload_thread = UploadThread(filepath=filepath, image_bytes=image_bytes, filename=filename)
         self.upload_thread.upload_finished.connect(self.upload_complete)
         self.upload_thread.start()
 
