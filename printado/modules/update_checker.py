@@ -1,4 +1,3 @@
-import os
 import sys
 import requests
 import webbrowser
@@ -8,23 +7,28 @@ import qtawesome as qta
 from printado.config import Config
 from printado.core.theme import get_theme
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from printado.version import __version__
+from printado.core.toolbar import is_background_dark
+from printado.core.versioning import is_version_newer
 
-from version import __version__
-from core.toolbar import is_background_dark
 
-UPDATE_CHECK_URL = f"{Config.BASE_URL}latest_version.json"
+def _update_url() -> str:
+    base = (Config.BASE_URL or "").strip()
+    if not base:
+        base = "https://printado.com.br/"
+    base = base.rstrip("/") + "/"
+    return f"{base}latest_version.json"
 
 def check_for_update(parent):
     try:
-        response = requests.get(UPDATE_CHECK_URL, timeout=5)
+        response = requests.get(_update_url(), timeout=5)
         if response.status_code == 200:
             data = response.json()
             latest_version = data.get("latest_version", __version__)
             download_url = data.get("download_url", "")
             changelog = data.get("changelog", [])
 
-            if latest_version > __version__:
+            if is_version_newer(str(latest_version), str(__version__)):
                 QTimer.singleShot(500, lambda: notify_update(parent, latest_version, download_url, changelog))
     except Exception:
         pass
@@ -35,7 +39,8 @@ class UpdateDialog(QDialog):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Popup | Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
 
-        is_dark = is_background_dark(parent.original_screenshot) if parent.screenshot else True
+        image = getattr(parent, "rendered_screenshot", None) or getattr(parent, "base_screenshot", None)
+        is_dark = is_background_dark(image) if image else True
         theme = get_theme(is_dark)
 
         self.layout = QVBoxLayout()

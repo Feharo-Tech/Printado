@@ -1,9 +1,9 @@
-from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
 from printado.core.blur_background import BlurBackground
 from printado.core.toolbar import is_background_dark, update_button_styles
 from printado.modules.update_checker import check_for_update
+from printado.core.image_utils import pil_image_to_qpixmap
 
 def process_screenshot(screenshot_tool, screenshot):
     check_for_update(screenshot_tool)
@@ -14,8 +14,9 @@ def process_screenshot(screenshot_tool, screenshot):
         screenshot_tool.blur_background.lower()
 
     QApplication.restoreOverrideCursor()
-    screenshot_tool.screenshot = screenshot
-    screenshot_tool.original_screenshot = screenshot.copy()
+    screenshot_tool.base_screenshot = screenshot
+    screenshot_tool.rendered_screenshot = screenshot.copy()
+    screenshot_tool.elements = []
 
     adjust_screenshot_size(screenshot_tool)
     update_ui_with_screenshot(screenshot_tool)
@@ -25,7 +26,7 @@ def adjust_screenshot_size(screenshot_tool):
     min_width, min_height = 400, 300
     max_width, max_height = 1024, 576
 
-    screenshot_tool.original_width, screenshot_tool.original_height = screenshot_tool.screenshot.size
+    screenshot_tool.original_width, screenshot_tool.original_height = screenshot_tool.base_screenshot.size
     aspect_ratio = screenshot_tool.original_width / screenshot_tool.original_height
 
     if screenshot_tool.original_width > max_width or screenshot_tool.original_height > max_height:
@@ -36,7 +37,8 @@ def adjust_screenshot_size(screenshot_tool):
             screenshot_tool.new_height = max_height
             screenshot_tool.new_width = int(max_height * aspect_ratio)
 
-        screenshot_tool.screenshot = screenshot_tool.screenshot.resize((screenshot_tool.new_width, screenshot_tool.new_height))
+        # keep base image in original size; resize is only for display
+        pass
     else:
         screenshot_tool.new_width, screenshot_tool.new_height = screenshot_tool.original_width, screenshot_tool.original_height
 
@@ -48,9 +50,13 @@ def adjust_screenshot_size(screenshot_tool):
 
 
 def update_ui_with_screenshot(screenshot_tool):
-    screenshot_tool.screenshot.save("temp_screenshot.png")
-
-    pixmap = QPixmap("temp_screenshot.png")
+    pixmap = pil_image_to_qpixmap(screenshot_tool.base_screenshot)
+    pixmap = pixmap.scaled(
+        screenshot_tool.new_width,
+        screenshot_tool.new_height,
+        Qt.KeepAspectRatio,
+        Qt.SmoothTransformation,
+    )
     screenshot_tool.label.setPixmap(pixmap)
     screenshot_tool.label.setFixedSize(screenshot_tool.display_width, screenshot_tool.display_height)
     screenshot_tool.label.setAlignment(Qt.AlignCenter)
@@ -61,7 +67,7 @@ def update_ui_with_screenshot(screenshot_tool):
     center_y = (screen_geometry.height() - 576) // 2
     screenshot_tool.move(center_x, center_y)
 
-    is_dark = is_background_dark(screenshot_tool.original_screenshot)
+    is_dark = is_background_dark(screenshot_tool.base_screenshot)
     update_button_styles(screenshot_tool.toolbar_widget, is_dark, screenshot_tool.buttons)
 
     screenshot_tool.show()

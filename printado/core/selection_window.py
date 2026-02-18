@@ -2,11 +2,13 @@ import sys
 import time
 import mss
 from PyQt5.QtWidgets import QApplication, QWidget, QRubberBand, QLabel
-from PyQt5.QtCore import Qt, QRect, QPoint
+from PyQt5.QtCore import Qt, QRect, QPoint, pyqtSignal
 from PyQt5.QtGui import QScreen
 from PIL import Image
 
 class SelectionWindow(QWidget):
+    selection_finished = pyqtSignal(object)
+
     def __init__(self, main_app):
         super().__init__()
         self.main_app = main_app
@@ -108,5 +110,16 @@ class SelectionWindow(QWidget):
                 raw_screenshot = sct.grab(monitor_full)
                 screenshot = Image.frombytes("RGB", raw_screenshot.size, raw_screenshot.rgb)
 
-        self.main_app.process_screenshot(screenshot)
+        # Preferred: emit a signal so the caller controls the flow.
+        try:
+            self.selection_finished.emit(screenshot)
+        except Exception:
+            pass
+
+        # Backward compatibility: older GUI calls process_screenshot directly.
+        try:
+            if hasattr(self.main_app, "process_screenshot"):
+                self.main_app.process_screenshot(screenshot)
+        except Exception:
+            pass
         self.close()

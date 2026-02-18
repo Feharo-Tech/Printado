@@ -1,19 +1,32 @@
-import pytest
-from printado.modules.upload import UploadThread
 from PyQt5.QtCore import QThread
 
-@pytest.fixture
-def upload_thread():
-    return UploadThread("test_image.png")
+from printado.modules.upload import UploadThread
 
-def test_upload_thread_creation(upload_thread):
-    """Verifica se a thread de upload é criada corretamente."""
-    assert isinstance(upload_thread, QThread)
 
-def test_upload_thread_signal(upload_thread, qtbot):
-    """Testa se a thread de upload emite um sinal ao concluir."""
-    def mock_upload_finished(link):
-        assert "http" in link or "Erro" in link
+class _FakeResponse:
+    def __init__(self, status_code=200, payload=None, text=""):
+        self.status_code = status_code
+        self._payload = payload or {}
+        self.text = text
 
-    upload_thread.upload_finished.connect(mock_upload_finished)
-    qtbot.waitSignal(upload_thread.upload_finished, timeout=5000)
+    def json(self):
+        return self._payload
+
+
+def test_upload_thread_creation():
+    thread = UploadThread(image_bytes=b"png-bytes", filename="test.png")
+    assert isinstance(thread, QThread)
+
+
+def test_upload_thread_emits_link(monkeypatch):
+    def fake_post(url, files=None, headers=None, timeout=None):
+        return _FakeResponse(200, payload={"link": "https://example.com/x"})
+
+    monkeypatch.setattr("printado.modules.upload.requests.post", fake_post)
+
+    emitted = {"value": None}
+    thread = UploadThread(image_bytes=b"png-bytes", filename="test.png")
+    thread.upload_finished.connect(lambda value: emitted.__setitem__("value", value))
+    thread.run()
+
+    assert emitted["value"] == "https://example.com/x"
